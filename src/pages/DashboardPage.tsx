@@ -2,6 +2,7 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import SummaryCard from "../components/SummaryCard";
 import ProductivityChart from "../components/ProductivityChart";
+import FocusSession from "../components/FocusSession";
 
 export default function DashboardPage() {
   return (
@@ -52,6 +53,7 @@ export default function DashboardPage() {
           {/* Bento Grid */}
           <div className="grid grid-cols-12 gap-gutter mt-8">
             <ProductivityChart />
+            <FocusSession />
           </div>
         </main>
       </div>
