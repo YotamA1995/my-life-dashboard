@@ -1,8 +1,7 @@
-
-
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import SummaryCard from "../components/SummaryCard";
+import ProductivityChart from "../components/ProductivityChart";
 
 export default function DashboardPage() {
   return (
@@ -48,6 +47,11 @@ export default function DashboardPage() {
               icon="savings"
               positive
             />
+          </div>
+
+          {/* Bento Grid */}
+          <div className="grid grid-cols-12 gap-gutter mt-8">
+            <ProductivityChart />
           </div>
         </main>
       </div>
