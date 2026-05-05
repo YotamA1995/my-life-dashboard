@@ -3,6 +3,7 @@ import Topbar from "../components/Topbar";
 import SummaryCard from "../components/SummaryCard";
 import ProductivityChart from "../components/ProductivityChart";
 import FocusSession from "../components/FocusSession";
+import NetworkActivity from "../components/NetworkActivity";
 
 export default function DashboardPage() {
   return (
@@ -54,6 +55,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-12 gap-gutter mt-8">
             <ProductivityChart />
             <FocusSession />
+            <NetworkActivity />
           </div>
         </main>
       </div>
