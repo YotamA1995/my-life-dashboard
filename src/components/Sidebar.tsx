@@ -1,8 +1,21 @@
+import { NavLink } from "react-router-dom";
 
+const navItems = [
+  { label: "סקירה כללית", icon: "dashboard", to: "/" },
+  { label: "כספים", icon: "payments", to: "/finance" },
+  { label: "לוח זמנים", icon: "calendar_month", to: "/schedule" },
+  { label: "משימות", icon: "assignment_turned_in", to: "/tasks" },
+  { label: "הגדרות", icon: "settings", to: "/settings" },
+];
 
-import React from "react";
+const getNavClassName = ({ isActive }: { isActive: boolean }) =>
+  `flex items-center px-4 py-3 transition-colors text-sm font-medium rounded-md ${
+    isActive
+      ? "text-blue-600 border-l-2 border-blue-600 bg-blue-50/50"
+      : "text-slate-500 hover:bg-slate-100"
+  }`;
 
-const Sidebar: React.FC = () => {
+export default function Sidebar() {
   return (
     <aside className="h-screen w-64 fixed right-0 top-0 border-l border-slate-200 bg-white/80 backdrop-blur-md flex flex-col py-4 z-50">
       {/* Logo */}
@@ -15,30 +28,12 @@ const Sidebar: React.FC = () => {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 space-y-1">
-        <a className="flex items-center px-4 py-3 text-blue-600 border-l-2 border-blue-600 bg-blue-50/50 transition-colors text-sm font-medium" href="#">
-          <span className="material-symbols-outlined ml-3">dashboard</span>
-          סקירה כללית
-        </a>
-
-        <a className="flex items-center px-4 py-3 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium" href="#">
-          <span className="material-symbols-outlined ml-3">payments</span>
-          כספים
-        </a>
-
-        <a className="flex items-center px-4 py-3 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium" href="#">
-          <span className="material-symbols-outlined ml-3">calendar_month</span>
-          לוח זמנים
-        </a>
-
-        <a className="flex items-center px-4 py-3 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium" href="#">
-          <span className="material-symbols-outlined ml-3">assignment_turned_in</span>
-          משימות
-        </a>
-
-        <a className="flex items-center px-4 py-3 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium" href="#">
-          <span className="material-symbols-outlined ml-3">settings</span>
-          הגדרות
-        </a>
+        {navItems.map((item) => (
+          <NavLink key={item.to} to={item.to} className={getNavClassName}>
+            <span className="material-symbols-outlined ml-3">{item.icon}</span>
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
 
       {/* Bottom actions */}
@@ -62,6 +57,4 @@ const Sidebar: React.FC = () => {
       </div>
     </aside>
   );
-};
-
-export default Sidebar;
+}
