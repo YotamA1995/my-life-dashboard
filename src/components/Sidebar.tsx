@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { label: "סקירה כללית", icon: "dashboard", to: "/" },
+  { label: "סקירה כללית", icon: "dashboard", to: "/", end: true },
   { label: "כספים", icon: "payments", to: "/finance" },
   { label: "לוח זמנים", icon: "calendar_month", to: "/schedule" },
   { label: "משימות", icon: "assignment_turned_in", to: "/tasks" },
@@ -29,7 +29,7 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-4 space-y-1">
         {navItems.map((item) => (
-          <NavLink key={item.to} to={item.to} className={getNavClassName}>
+          <NavLink key={item.to} to={item.to} end={item.end} className={getNavClassName}>
             <span className="material-symbols-outlined ml-3">{item.icon}</span>
             {item.label}
           </NavLink>
@@ -45,15 +45,15 @@ export default function Sidebar() {
       </div>
 
       <div className="px-4 py-4 mt-auto border-t border-slate-200">
-        <a className="flex items-center px-4 py-2 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium" href="#">
+        <button className="w-full flex items-center px-4 py-2 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium rounded-md" type="button">
           <span className="material-symbols-outlined ml-3 text-lg">help</span>
           תמיכה
-        </a>
+        </button>
 
-        <a className="flex items-center px-4 py-2 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium" href="#">
+        <button className="w-full flex items-center px-4 py-2 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium rounded-md" type="button">
           <span className="material-symbols-outlined ml-3 text-lg">logout</span>
           התנתקות
-        </a>
+        </button>
       </div>
     </aside>
   );
