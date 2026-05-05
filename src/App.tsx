@@ -1,29 +1,9 @@
+import Sidebar from "./components/Sidebar";
+
 function App() {
   return (
     <div dir="rtl" className="min-h-screen bg-background text-on-surface flex">
-      {/* Sidebar */}
-      <aside className="h-screen w-64 fixed right-0 top-0 border-l border-slate-200 bg-white/80 backdrop-blur-md flex flex-col py-4 z-50">
-        <div className="text-xl font-bold text-slate-900 px-6 py-8">
-          <span className="text-blue-600">Life</span>Hub
-          <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">חבילה מקצועית</p>
-        </div>
-
-        <nav className="flex-1 px-4 space-y-1 text-sm">
-          <div className="flex items-center px-4 py-3 text-blue-600 border-l-2 border-blue-600 bg-blue-50/50 rounded-md font-medium">
-            סקירה כללית
-          </div>
-          <div className="px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-md cursor-pointer">כספים</div>
-          <div className="px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-md cursor-pointer">לוח זמנים</div>
-          <div className="px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-md cursor-pointer">משימות</div>
-          <div className="px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-md cursor-pointer">הגדרות</div>
-        </nav>
-
-        <div className="px-6 py-6">
-          <button className="w-full bg-primary text-on-primary py-3 px-4 rounded-xl font-semibold text-sm shadow-lg hover:opacity-90 transition-all">
-            ערך חדש
-          </button>
-        </div>
-      </aside>
+      <Sidebar />
 
       {/* Main Area */}
       <div className="flex-1 mr-64 flex flex-col">
