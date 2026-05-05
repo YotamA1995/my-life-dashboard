@@ -4,10 +4,10 @@ const progress = 75;
 
 export default function FocusSession() {
   return (
-    <div className="col-span-12 lg:col-span-4 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl p-card-padding flex flex-col group relative">
+    <div className="col-span-12 lg:col-span-4 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl p-card-padding flex flex-col group relative shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-lg bg-tertiary-fixed/40 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-lg bg-tertiary-fixed/40 flex items-center justify-center ring-1 ring-tertiary-fixed/40">
           <span className="material-symbols-outlined text-on-tertiary-fixed-variant">
             psychology
           </span>
@@ -21,7 +21,7 @@ export default function FocusSession() {
 
       {/* Circle */}
       <div className="flex-1 flex flex-col justify-center items-center">
-        <div className="relative w-32 h-32 flex items-center justify-center">
+        <div className="relative w-32 h-32 flex items-center justify-center rounded-full bg-slate-50 shadow-inner">
           <svg className="w-full h-full transform -rotate-90">
             <circle
               cx="64"
@@ -40,7 +40,7 @@ export default function FocusSession() {
               strokeWidth="8"
               strokeDasharray="351.85"
               strokeDashoffset={351.85 - (351.85 * progress) / 100}
-              className="text-blue-600 transition-all duration-500"
+              className="text-blue-600 transition-all duration-700 drop-shadow-sm"
               stroke="currentColor"
               fill="transparent"
             />
@@ -58,7 +58,7 @@ export default function FocusSession() {
       </div>
 
       {/* Button */}
-      <button className="mt-6 w-full py-3 bg-surface-container hover:bg-surface-container-high transition-colors rounded-xl font-bold text-sm text-primary">
+      <button className="mt-6 w-full py-3 bg-surface-container hover:bg-primary hover:text-white transition-all duration-300 rounded-xl font-bold text-sm text-primary">
         הפעל טיימר
       </button>
     </div>

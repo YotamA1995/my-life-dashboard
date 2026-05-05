@@ -3,7 +3,7 @@ const days = ["שני", "שלישי", "רביעי", "חמישי", "שישי", "�
 
 export default function ProductivityChart() {
   return (
-    <section className="col-span-12 lg:col-span-8 rounded-xl border border-slate-200 bg-white/90 p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] backdrop-blur-sm">
+    <section className="col-span-12 lg:col-span-8 rounded-xl border border-slate-200 bg-white/90 p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h3 className="text-h3 text-primary">קצב פרודוקטיביות</h3>
@@ -20,7 +20,7 @@ export default function ProductivityChart() {
         </div>
       </div>
 
-      <div className="relative h-72 rounded-2xl bg-slate-50 px-5 pb-10 pt-6">
+      <div className="relative h-72 rounded-2xl border border-slate-100 bg-slate-50 px-5 pb-10 pt-6 overflow-hidden">
         <div className="absolute inset-x-5 top-1/4 border-t border-dashed border-slate-200" />
         <div className="absolute inset-x-5 top-1/2 border-t border-dashed border-slate-200" />
         <div className="absolute inset-x-5 top-3/4 border-t border-dashed border-slate-200" />
@@ -33,10 +33,10 @@ export default function ProductivityChart() {
               <div key={days[index]} className="flex h-full flex-1 flex-col justify-end gap-3">
                 <div className="flex h-full items-end">
                   <div
-                    className={`w-full rounded-t-xl transition-all duration-300 hover:opacity-90 ${
+                    className={`w-full rounded-t-xl transition-all duration-300 hover:scale-y-105 hover:opacity-95 origin-bottom ${
                       isActive
                         ? "bg-blue-600 shadow-lg shadow-blue-600/20"
-                        : "bg-blue-100"
+                        : "bg-blue-100 hover:bg-blue-200"
                     }`}
                     style={{ height: `${height}%` }}
                   />

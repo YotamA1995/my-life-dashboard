@@ -18,7 +18,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
   positive = true,
 }) => {
   return (
-    <div className="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] flex flex-col justify-between min-h-[180px]">
+    <div className="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1 cursor-pointer flex flex-col justify-between min-h-[180px]">
       <div>
         <div className="flex justify-between items-start mb-4">
           <span className="text-label-caps text-slate-400 uppercase">{title}</span>
