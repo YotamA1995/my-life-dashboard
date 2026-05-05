@@ -1,4 +1,5 @@
 import Sidebar from "./components/Sidebar";
+import Topbar from "./components/Topbar";
 
 function App() {
   return (
@@ -8,9 +9,7 @@ function App() {
       {/* Main Area */}
       <div className="flex-1 mr-64 flex flex-col">
         {/* Topbar */}
-        <header className="h-16 border-b border-slate-200 bg-white/80 backdrop-blur-md flex items-center px-8 sticky top-0 z-40">
-          <h1 className="text-h2 text-primary">סקירת לוח הבקרה</h1>
-        </header>
+        <Topbar />
 
         {/* Content */}
         <main className="p-8 space-y-8">
