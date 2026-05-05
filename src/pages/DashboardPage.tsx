@@ -4,6 +4,7 @@ import SummaryCard from "../components/SummaryCard";
 import ProductivityChart from "../components/ProductivityChart";
 import FocusSession from "../components/FocusSession";
 import NetworkActivity from "../components/NetworkActivity";
+import WellnessCard from "../components/WellnessCard";
 
 export default function DashboardPage() {
   return (
@@ -56,6 +57,7 @@ export default function DashboardPage() {
             <ProductivityChart />
             <FocusSession />
             <NetworkActivity />
+            <WellnessCard />
           </div>
         </main>
       </div>
