@@ -1,3 +1,5 @@
+import { useState } from "react";
+import EditTaskModal from "./EditTaskModal";
 import { useTasksStore } from "../../store/useTasksStore";
 import type { Task } from "../../store/useTasksStore";
 
@@ -29,7 +31,8 @@ export default function TaskCard({
   task,
   isHighlighted,
 }: TaskCardProps) {
-  const { updateTask, deleteTask } = useTasksStore();
+  const { deleteTask } = useTasksStore();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const priority = priorityMap[task.priority] ?? priorityMap.medium;
   const isDone = task.status === "done";
@@ -57,15 +60,7 @@ export default function TaskCard({
 
         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
           <button
-            onClick={() => {
-              const title = prompt("ערוך משימה", task.title);
-
-              if (title && title.trim()) {
-                updateTask(task.id, {
-                  title: title.trim(),
-                });
-              }
-            }}
+            onClick={() => setIsEditModalOpen(true)}
             className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-primary"
           >
             <span className="material-symbols-outlined text-[18px]">
@@ -82,9 +77,6 @@ export default function TaskCard({
             </span>
           </button>
 
-          <span className="material-symbols-outlined cursor-grab text-slate-300">
-            drag_indicator
-          </span>
         </div>
       </div>
 
@@ -103,6 +95,12 @@ export default function TaskCard({
           </span>
           {task.dueDate}
         </div>
+      )}
+      {isEditModalOpen && (
+        <EditTaskModal
+          task={task}
+          onClose={() => setIsEditModalOpen(false)}
+        />
       )}
     </div>
   );
