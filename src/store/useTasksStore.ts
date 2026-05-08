@@ -138,6 +138,7 @@ export function useTasksStore() {
 
       emitChange();
       saveToStorage();
+      return newTask.id;
     },
 
     moveTask(taskId: string, status: TaskStatus) {

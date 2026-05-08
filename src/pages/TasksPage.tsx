@@ -23,7 +23,13 @@ const priorityLabels: Record<TaskPriority, string> = {
   completed: "הושלם",
 };
 
-function TaskCard({ task }: { task: Task }) {
+function TaskCard({
+  task,
+  isHighlighted,
+}: {
+  task: Task;
+  isHighlighted?: boolean;
+}) {
   const { deleteTask, updateTask } = useTasksStore();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
@@ -33,6 +39,7 @@ function TaskCard({ task }: { task: Task }) {
 
   return (
     <div
+      id={`task-${task.id}`}
       draggable
       onDragStart={(event) => {
         event.dataTransfer.setData("text/plain", task.id);
@@ -40,7 +47,9 @@ function TaskCard({ task }: { task: Task }) {
       }}
       className={`group cursor-grab rounded-xl border border-outline-variant/30 bg-white p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 active:cursor-grabbing hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] ${
         task.status === "inProgress" ? "border-r-4 border-r-secondary" : ""
-      } ${isDone ? "bg-white/60 opacity-80 grayscale-[0.4]" : ""}`}
+      } ${isDone ? "bg-white/60 opacity-80 grayscale-[0.4]" : ""} ${
+        isHighlighted ? "ring-2 ring-secondary ring-offset-2" : ""
+      }`}
     >
       <div className="mb-3 flex items-start justify-between">
         <span className={`rounded px-2 py-1 text-label-caps ${priorityStyles[task.priority]}`}>
@@ -121,7 +130,13 @@ function TaskCard({ task }: { task: Task }) {
   );
 }
 
-function AddTaskModal({ onClose }: { onClose: () => void }) {
+function AddTaskModal({
+  onClose,
+  onTaskCreated,
+}: {
+  onClose: () => void;
+  onTaskCreated: (taskId: string) => void;
+}) {
   const { addTask } = useTasksStore();
 
   const [title, setTitle] = useState("");
@@ -136,8 +151,17 @@ function AddTaskModal({ onClose }: { onClose: () => void }) {
       return;
     }
 
-    addTask(title, status, dueDate, priority);
+    const newTaskId = addTask(title, status, dueDate, priority);
     onClose();
+
+    setTimeout(() => {
+      const element = document.getElementById(`task-${newTaskId}`);
+
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        onTaskCreated(newTaskId);
+      }
+    }, 100);
   }
 
   return (
@@ -225,6 +249,7 @@ export default function TasksPage() {
   const { tasks, moveTask } = useTasksStore();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null);
 
   const activeTasks = tasks.filter((task) => task.status !== "done").length;
   const completedTasks = tasks.filter((task) => task.status === "done").length;
@@ -310,7 +335,11 @@ export default function TasksPage() {
                   className="flex min-h-[360px] flex-1 flex-col gap-4 rounded-2xl border-2 border-dashed border-transparent bg-slate-50/60 p-3 transition-colors hover:border-secondary/20"
                 >
                   {columnTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      isHighlighted={highlightedTaskId === task.id}
+                    />
                   ))}
 
                   {columnTasks.length === 0 && (
@@ -375,7 +404,16 @@ export default function TasksPage() {
           </div>
         </section>
         {isAddModalOpen && (
-          <AddTaskModal onClose={() => setIsAddModalOpen(false)} />
+          <AddTaskModal
+            onClose={() => setIsAddModalOpen(false)}
+            onTaskCreated={(taskId) => {
+              setHighlightedTaskId(taskId);
+
+              setTimeout(() => {
+                setHighlightedTaskId(null);
+              }, 2500);
+            }}
+          />
         )}
       </div>
     </main>
