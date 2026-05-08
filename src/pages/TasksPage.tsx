@@ -124,27 +124,58 @@ function TaskCard({ task }: { task: Task }) {
 function AddTaskForm({ status }: { status: TaskStatus }) {
   const { addTask } = useTasksStore();
   const [title, setTitle] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState<TaskPriority>("medium");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    addTask(title, status);
+
+    if (!title.trim()) {
+      return;
+    }
+
+    addTask(title, status, dueDate, priority);
+
     setTitle("");
+    setDueDate("");
+    setPriority("medium");
   }
 
   return (
-    <form className="relative" onSubmit={handleSubmit}>
+    <form
+      className="space-y-3 rounded-xl border border-outline-variant/40 bg-white p-4"
+      onSubmit={handleSubmit}
+    >
       <input
         value={title}
         onChange={(event) => setTitle(event.target.value)}
-        placeholder="הוסף משימה..."
-        className="w-full rounded-lg border border-outline-variant bg-white py-3 pr-4 pl-10 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
+        placeholder="שם המשימה"
+        className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
       />
-      <button
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary"
-        type="submit"
-        aria-label="הוסף משימה"
+
+      <input
+        type="date"
+        value={dueDate}
+        onChange={(event) => setDueDate(event.target.value)}
+        className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
+      />
+
+      <select
+        value={priority}
+        onChange={(event) => setPriority(event.target.value as TaskPriority)}
+        className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
       >
-        <span className="material-symbols-outlined">add</span>
+        <option value="low">עדיפות נמוכה</option>
+        <option value="medium">עדיפות בינונית</option>
+        <option value="high">עדיפות גבוהה</option>
+      </select>
+
+      <button
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all hover:opacity-90"
+        type="submit"
+      >
+        <span className="material-symbols-outlined text-lg">add</span>
+        הוסף משימה
       </button>
     </form>
   );

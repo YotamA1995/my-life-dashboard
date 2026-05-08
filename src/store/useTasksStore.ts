@@ -113,7 +113,12 @@ export function useTasksStore() {
   return {
     tasks: currentState.tasks,
 
-    addTask(title: string, status: TaskStatus = "todo") {
+    addTask(
+      title: string,
+      status: TaskStatus = "todo",
+      dueDate?: string,
+      priority: TaskPriority = "medium",
+    ) {
       const cleanTitle = title.trim();
 
       if (!cleanTitle) return;
@@ -121,9 +126,9 @@ export function useTasksStore() {
       const newTask: Task = {
         id: createTaskId(),
         title: cleanTitle,
-        dueDate: "היום",
+        dueDate: dueDate || "היום",
         status,
-        priority: "medium",
+        priority: status === "done" ? "completed" : priority,
       };
 
       state = {
