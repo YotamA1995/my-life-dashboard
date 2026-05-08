@@ -1,9 +1,11 @@
-
-
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useTasksStore } from "../../store/useTasksStore";
 import type { TaskPriority, TaskStatus } from "../../store/useTasksStore";
+
+function getTodayDate() {
+  return new Date().toISOString().split("T")[0];
+}
 
 type AddTaskModalProps = {
   onClose: () => void;
@@ -17,7 +19,7 @@ export default function AddTaskModal({
   const { addTask } = useTasksStore();
 
   const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState(getTodayDate());
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [status, setStatus] = useState<TaskStatus>("todo");
 
@@ -28,7 +30,14 @@ export default function AddTaskModal({
       return;
     }
 
-    const newTaskId = addTask(title, status, dueDate, priority);
+    const normalizedDueDate = dueDate || getTodayDate();
+
+    const newTaskId = addTask(
+      title,
+      status,
+      normalizedDueDate,
+      priority,
+    );
 
     onClose();
 

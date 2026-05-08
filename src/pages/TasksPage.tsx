@@ -3,8 +3,10 @@ import AddTaskModal from "../components/tasks/AddTaskModal";
 import KanbanColumn from "../components/tasks/KanbanColumn";
 import TasksStats from "../components/tasks/TasksStats";
 import TasksInsights from "../components/tasks/TasksInsights";
+import TasksToolbar from "../components/tasks/TasksToolbar";
 import { taskColumns } from "../components/tasks/tasksColumns";
 import { useTasksStore } from "../store/useTasksStore";
+import type { TaskPriority, TaskStatus } from "../store/useTasksStore";
 
 
 export default function TasksPage() {
@@ -12,6 +14,32 @@ export default function TasksPage() {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null);
+
+  const [search, setSearch] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<TaskStatus | "all">("all");
+  const [selectedPriority, setSelectedPriority] = useState<TaskPriority | "all">("all");
+
+  const filteredTasks = tasks.filter((task) => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    const matchesSearch = normalizedSearch
+      ? task.title.toLowerCase().includes(normalizedSearch)
+      : true;
+
+    const matchesStatus =
+      selectedStatus === "all" || task.status === selectedStatus;
+
+    const matchesPriority =
+      selectedPriority === "all" || task.priority === selectedPriority;
+
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  function resetFilters() {
+    setSearch("");
+    setSelectedStatus("all");
+    setSelectedPriority("all");
+  }
 
 
   return (
@@ -36,10 +64,22 @@ export default function TasksPage() {
 
         <TasksStats tasks={tasks} />
 
+        <TasksToolbar
+          search={search}
+          selectedStatus={selectedStatus}
+          selectedPriority={selectedPriority}
+          onSearchChange={setSearch}
+          onStatusChange={setSelectedStatus}
+          onPriorityChange={setSelectedPriority}
+          onReset={resetFilters}
+        />
+
         {/* Kanban */}
         <section className="mb-8 flex gap-gutter overflow-x-auto pb-8">
           {taskColumns.map((column) => {
-            const columnTasks = tasks.filter((task) => task.status === column.status);
+            const columnTasks = filteredTasks.filter(
+              (task) => task.status === column.status,
+            );
 
             return (
               <KanbanColumn

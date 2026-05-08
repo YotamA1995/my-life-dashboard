@@ -2,6 +2,7 @@ import { useState } from "react";
 import EditTaskModal from "./EditTaskModal";
 import { useTasksStore } from "../../store/useTasksStore";
 import type { Task } from "../../store/useTasksStore";
+import { formatTaskDate, isOverdue } from "../../utils/dateUtils";
 
 type TaskCardProps = {
   task: Task;
@@ -36,6 +37,7 @@ export default function TaskCard({
 
   const priority = priorityMap[task.priority] ?? priorityMap.medium;
   const isDone = task.status === "done";
+  const overdue = isOverdue(task.dueDate) && !isDone;
 
   return (
     <div
@@ -88,14 +90,16 @@ export default function TaskCard({
         {task.title}
       </h4>
 
-      {task.dueDate && (
-        <div className="flex items-center text-body-sm text-on-surface-variant">
-          <span className="material-symbols-outlined ml-1 text-[18px]">
-            calendar_today
-          </span>
-          {task.dueDate}
-        </div>
-      )}
+      <div
+        className={`flex items-center text-body-sm ${
+          overdue ? "text-red-600" : "text-on-surface-variant"
+        }`}
+      >
+        <span className="material-symbols-outlined ml-1 text-[18px]">
+          {overdue ? "warning" : "calendar_today"}
+        </span>
+        {formatTaskDate(task.dueDate)}
+      </div>
       {isEditModalOpen && (
         <EditTaskModal
           task={task}

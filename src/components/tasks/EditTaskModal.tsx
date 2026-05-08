@@ -1,8 +1,10 @@
-
-
 import { useState } from "react";
 import { useTasksStore } from "../../store/useTasksStore";
 import type { Task, TaskPriority } from "../../store/useTasksStore";
+
+function getTodayDate() {
+  return new Date().toISOString().split("T")[0];
+}
 
 type EditTaskModalProps = {
   task: Task;
@@ -16,7 +18,9 @@ export default function EditTaskModal({
   const { updateTask } = useTasksStore();
 
   const [title, setTitle] = useState(task.title);
-  const [dueDate, setDueDate] = useState(task.dueDate);
+  const [dueDate, setDueDate] = useState(
+    task.dueDate || getTodayDate(),
+  );
 
   const [priority, setPriority] = useState<TaskPriority>(
     task.priority === "completed" ? "medium" : task.priority,
@@ -27,9 +31,11 @@ export default function EditTaskModal({
       return;
     }
 
+    const normalizedDueDate = dueDate || getTodayDate();
+
     updateTask(task.id, {
       title: title.trim(),
-      dueDate,
+      dueDate: normalizedDueDate,
       priority: task.status === "done" ? "completed" : priority,
     });
 
