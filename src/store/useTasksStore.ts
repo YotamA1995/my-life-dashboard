@@ -1,4 +1,5 @@
-import { useSyncExternalStore } from "react";
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export type TaskStatus = "todo" | "inProgress" | "done";
 
@@ -12,8 +13,24 @@ export type Task = {
   priority: TaskPriority;
 };
 
-type TasksState = {
+type TasksStore = {
   tasks: Task[];
+
+  addTask: (
+    title: string,
+    status?: TaskStatus,
+    dueDate?: string,
+    priority?: TaskPriority,
+  ) => string | undefined;
+
+  moveTask: (taskId: string, status: TaskStatus) => void;
+
+  updateTask: (
+    taskId: string,
+    updates: Partial<Omit<Task, "id">>,
+  ) => void;
+
+  deleteTask: (taskId: string) => void;
 };
 
 const initialTasks: Task[] = [
@@ -68,122 +85,83 @@ const initialTasks: Task[] = [
   },
 ];
 
-function loadFromStorage(): Task[] {
-  try {
-    const raw = localStorage.getItem("tasks");
-    if (!raw) return initialTasks;
-    return JSON.parse(raw);
-  } catch {
-    return initialTasks;
-  }
-}
-
-let state: TasksState = {
-  tasks: loadFromStorage(),
-};
-
-const listeners = new Set<() => void>();
-
-function emitChange() {
-  listeners.forEach((listener) => listener());
-}
-
-function saveToStorage() {
-  try {
-    localStorage.setItem("tasks", JSON.stringify(state.tasks));
-  } catch {}
-}
-
-function subscribe(listener: () => void) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function getSnapshot() {
-  return state;
-}
-
 function createTaskId() {
   return `task-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-export function useTasksStore() {
-  const currentState = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+export const useTasksStore = create<TasksStore>()(
+  persist(
+    (set) => ({
+      tasks: initialTasks,
 
-  return {
-    tasks: currentState.tasks,
+      addTask(
+        title,
+        status = "todo",
+        dueDate,
+        priority = "medium",
+      ) {
+        const cleanTitle = title.trim();
 
-    addTask(
-      title: string,
-      status: TaskStatus = "todo",
-      dueDate?: string,
-      priority: TaskPriority = "medium",
-    ) {
-      const cleanTitle = title.trim();
+        if (!cleanTitle) {
+          return;
+        }
 
-      if (!cleanTitle) return;
+        const newTask: Task = {
+          id: createTaskId(),
+          title: cleanTitle,
+          dueDate: dueDate || "היום",
+          status,
+          priority: status === "done" ? "completed" : priority,
+        };
 
-      const newTask: Task = {
-        id: createTaskId(),
-        title: cleanTitle,
-        dueDate: dueDate || "היום",
-        status,
-        priority: status === "done" ? "completed" : priority,
-      };
+        set((state) => ({
+          tasks: [...state.tasks, newTask],
+        }));
 
-      state = {
-        ...state,
-        tasks: [...state.tasks, newTask],
-      };
+        return newTask.id;
+      },
 
-      emitChange();
-      saveToStorage();
-      return newTask.id;
+      moveTask(taskId, status) {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  status,
+                  priority:
+                    status === "done" ? "completed" : task.priority,
+                }
+              : task,
+          ),
+        }));
+      },
+
+      updateTask(taskId, updates) {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  ...updates,
+                }
+              : task,
+          ),
+        }));
+      },
+
+      deleteTask(taskId) {
+        set((state) => ({
+          tasks: state.tasks.filter((task) => task.id !== taskId),
+        }));
+      },
+    }),
+    {
+      name: "tasks-storage",
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        tasks: state.tasks,
+      }),
     },
-
-    moveTask(taskId: string, status: TaskStatus) {
-      state = {
-        ...state,
-        tasks: state.tasks.map((task) =>
-          task.id === taskId
-            ? {
-                ...task,
-                status,
-                priority: status === "done" ? "completed" : task.priority,
-              }
-            : task,
-        ),
-      };
-
-      emitChange();
-      saveToStorage();
-    },
-
-    updateTask(taskId: string, updates: Partial<Omit<Task, "id">>) {
-      state = {
-        ...state,
-        tasks: state.tasks.map((task) =>
-          task.id === taskId
-            ? {
-                ...task,
-                ...updates,
-              }
-            : task,
-        ),
-      };
-
-      emitChange();
-      saveToStorage();
-    },
-
-    deleteTask(taskId: string) {
-      state = {
-        ...state,
-        tasks: state.tasks.filter((task) => task.id !== taskId),
-      };
-
-      emitChange();
-      saveToStorage();
-    },
-  };
-}
+  ),
+);
