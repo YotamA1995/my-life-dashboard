@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AddTaskModal from "../components/tasks/AddTaskModal";
 import KanbanColumn from "../components/tasks/KanbanColumn";
+import TasksStats from "../components/tasks/TasksStats";
 import { useTasksStore } from "../store/useTasksStore";
 import type { TaskStatus } from "../store/useTasksStore";
 
@@ -20,16 +21,6 @@ export default function TasksPage() {
   const handleDropTask = (taskId: string, newStatus: TaskStatus) => {
     moveTask(taskId, newStatus);
   };
-
-  const activeTasks = tasks.filter((task) => task.status !== "done").length;
-  const completedTasks = tasks.filter((task) => task.status === "done").length;
-  const urgentTasks = tasks.filter((task) => task.priority === "high" && task.status !== "done").length;
-
-  const stats = [
-    { label: "משימות פעילות", value: String(activeTasks).padStart(2, "0") },
-    { label: "הושלמו היום", value: String(completedTasks).padStart(2, "0"), highlight: true },
-    { label: "מועד הגשה קרוב", value: String(urgentTasks).padStart(2, "0"), danger: true },
-  ];
 
   return (
     <main className="min-h-screen bg-surface px-8 pt-24 pb-12 text-on-surface">
@@ -51,28 +42,7 @@ export default function TasksPage() {
           </button>
         </section>
 
-        {/* Stats */}
-        <section className="mb-margin grid grid-cols-1 gap-gutter md:grid-cols-4">
-          {stats.map((item) => (
-            <div
-              key={item.label}
-              className="rounded-xl border border-outline-variant/30 bg-white p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]"
-            >
-              <p className="mb-2 text-label-caps text-on-surface-variant">{item.label}</p>
-              <h3
-                className={`text-h1 ${
-                  item.danger
-                    ? "text-error"
-                    : item.highlight
-                    ? "text-on-tertiary-container"
-                    : "text-on-surface"
-                }`}
-              >
-                {item.value}
-              </h3>
-            </div>
-          ))}
-        </section>
+        <TasksStats tasks={tasks} />
 
         {/* Kanban */}
         <section className="mb-8 flex gap-gutter overflow-x-auto pb-8">
