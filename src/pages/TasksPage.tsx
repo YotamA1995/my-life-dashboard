@@ -1,134 +1,14 @@
 import { useState } from "react";
 import AddTaskModal from "../components/tasks/AddTaskModal";
+import TaskCard from "../components/tasks/TaskCard";
 import { useTasksStore } from "../store/useTasksStore";
-import type { Task, TaskPriority, TaskStatus } from "../store/useTasksStore";
+import type { TaskStatus } from "../store/useTasksStore";
 
 const columns: { title: string; status: TaskStatus }[] = [
   { title: "חדש", status: "todo" },
   { title: "בעבודה", status: "inProgress" },
   { title: "סגור", status: "done" },
 ];
-
-const priorityStyles: Record<TaskPriority, string> = {
-  low: "bg-blue-50 text-blue-700",
-  medium: "bg-amber-50 text-amber-700",
-  high: "bg-red-50 text-red-700",
-  completed: "bg-tertiary-fixed text-on-tertiary-fixed-variant",
-};
-
-const priorityLabels: Record<TaskPriority, string> = {
-  low: "נמוך",
-  medium: "בינוני",
-  high: "גבוה",
-  completed: "הושלם",
-};
-
-function TaskCard({
-  task,
-  isHighlighted,
-}: {
-  task: Task;
-  isHighlighted?: boolean;
-}) {
-  const { deleteTask, updateTask } = useTasksStore();
-  const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(task.title);
-  const [dueDate, setDueDate] = useState(task.dueDate);
-  const [priority, setPriority] = useState<TaskPriority>(task.priority);
-  const isDone = task.status === "done";
-
-  return (
-    <div
-      id={`task-${task.id}`}
-      draggable
-      onDragStart={(event) => {
-        event.dataTransfer.setData("text/plain", task.id);
-        event.dataTransfer.effectAllowed = "move";
-      }}
-      className={`group cursor-grab rounded-xl border border-outline-variant/30 bg-white p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 active:cursor-grabbing hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] ${
-        task.status === "inProgress" ? "border-r-4 border-r-secondary" : ""
-      } ${isDone ? "bg-white/60 opacity-80 grayscale-[0.4]" : ""} ${
-        isHighlighted ? "ring-2 ring-secondary ring-offset-2" : ""
-      }`}
-    >
-      <div className="mb-3 flex items-start justify-between">
-        <span className={`rounded px-2 py-1 text-label-caps ${priorityStyles[task.priority]}`}>
-          {priorityLabels[task.priority]}
-        </span>
-
-        <div className="flex items-center">
-          <button
-            className="mr-2 text-slate-300 opacity-0 transition-opacity hover:text-secondary group-hover:opacity-100"
-            type="button"
-            onClick={() => setIsEditing((v) => !v)}
-            aria-label="עריכת משימה"
-          >
-            <span className="material-symbols-outlined text-lg">edit</span>
-          </button>
-
-          <button
-            className="text-slate-300 opacity-0 transition-opacity hover:text-error group-hover:opacity-100"
-            type="button"
-            onClick={() => deleteTask(task.id)}
-            aria-label="מחיקת משימה"
-          >
-            <span className="material-symbols-outlined text-lg">delete</span>
-          </button>
-        </div>
-      </div>
-
-      {!isEditing ? (
-        <>
-          <h4 className={`mb-4 text-body-md text-on-surface ${isDone ? "line-through" : ""}`}>
-            {task.title}
-          </h4>
-
-          <div className="mb-4 flex items-center text-body-sm text-on-surface-variant">
-            <span className="material-symbols-outlined ml-1 text-[18px]">calendar_today</span>
-            {task.dueDate}
-          </div>
-        </>
-      ) : (
-        <div className="mb-4 space-y-3">
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-lg border border-outline-variant px-3 py-2 text-sm"
-            placeholder="כותרת"
-          />
-
-          <input
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-full rounded-lg border border-outline-variant px-3 py-2 text-sm"
-            placeholder="תאריך"
-          />
-
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as TaskPriority)}
-            className="w-full rounded-lg border border-outline-variant px-3 py-2 text-sm"
-          >
-            <option value="low">נמוך</option>
-            <option value="medium">בינוני</option>
-            <option value="high">גבוה</option>
-          </select>
-
-          <button
-            className="w-full rounded-lg bg-primary py-2 text-sm font-semibold text-white"
-            onClick={() => {
-              updateTask(task.id, { title, dueDate, priority });
-              setIsEditing(false);
-            }}
-            type="button"
-          >
-            שמור
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 
 export default function TasksPage() {
