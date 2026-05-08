@@ -1,6 +1,6 @@
 import { useState } from "react";
 import AddTaskModal from "../components/tasks/AddTaskModal";
-import TaskCard from "../components/tasks/TaskCard";
+import KanbanColumn from "../components/tasks/KanbanColumn";
 import { useTasksStore } from "../store/useTasksStore";
 import type { TaskStatus } from "../store/useTasksStore";
 
@@ -16,6 +16,10 @@ export default function TasksPage() {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null);
+
+  const handleDropTask = (taskId: string, newStatus: TaskStatus) => {
+    moveTask(taskId, newStatus);
+  };
 
   const activeTasks = tasks.filter((task) => task.status !== "done").length;
   const completedTasks = tasks.filter((task) => task.status === "done").length;
@@ -76,45 +80,14 @@ export default function TasksPage() {
             const columnTasks = tasks.filter((task) => task.status === column.status);
 
             return (
-              <div key={column.status} className="flex w-80 flex-shrink-0 flex-col gap-4">
-                <div className="flex items-center justify-between px-2">
-                  <h3 className="text-h3 text-on-surface">
-                    {column.title}
-                    <span className="mr-2 text-body-sm font-normal text-on-surface-variant">
-                      {columnTasks.length}
-                    </span>
-                  </h3>
-                  <span className="material-symbols-outlined cursor-pointer text-slate-400">
-                    more_horiz
-                  </span>
-                </div>
-
-                <div
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    const taskId = event.dataTransfer.getData("text/plain");
-                    if (taskId) {
-                      moveTask(taskId, column.status);
-                    }
-                  }}
-                  className="flex min-h-[360px] flex-1 flex-col gap-4 rounded-2xl border-2 border-dashed border-transparent bg-slate-50/60 p-3 transition-colors hover:border-secondary/20"
-                >
-                  {columnTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      isHighlighted={highlightedTaskId === task.id}
-                    />
-                  ))}
-
-                  {columnTasks.length === 0 && (
-                    <div className="flex min-h-[120px] items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/50 text-sm text-on-surface-variant">
-                      אין משימות בעמודה הזו
-                    </div>
-                  )}
-                </div>
-              </div>
+              <KanbanColumn
+                key={column.status}
+                title={column.title}
+                status={column.status}
+                tasks={columnTasks}
+                highlightedTaskId={highlightedTaskId}
+                onDropTask={handleDropTask}
+              />
             );
           })}
         </section>
