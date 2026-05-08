@@ -1,8 +1,6 @@
-
-
 import { useSyncExternalStore } from "react";
 
-export type TaskStatus = "todo" | "inProgress" | "review" | "done";
+export type TaskStatus = "todo" | "inProgress" | "done";
 
 export type TaskPriority = "low" | "medium" | "high" | "completed";
 
@@ -51,7 +49,7 @@ const initialTasks: Task[] = [
     id: "task-5",
     title: "אימות תיעוד API",
     dueDate: "08 באוקטובר 2023",
-    status: "review",
+    status: "todo",
     priority: "low",
   },
   {
@@ -70,14 +68,30 @@ const initialTasks: Task[] = [
   },
 ];
 
+function loadFromStorage(): Task[] {
+  try {
+    const raw = localStorage.getItem("tasks");
+    if (!raw) return initialTasks;
+    return JSON.parse(raw);
+  } catch {
+    return initialTasks;
+  }
+}
+
 let state: TasksState = {
-  tasks: initialTasks,
+  tasks: loadFromStorage(),
 };
 
 const listeners = new Set<() => void>();
 
 function emitChange() {
   listeners.forEach((listener) => listener());
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem("tasks", JSON.stringify(state.tasks));
+  } catch {}
 }
 
 function subscribe(listener: () => void) {
@@ -118,6 +132,7 @@ export function useTasksStore() {
       };
 
       emitChange();
+      saveToStorage();
     },
 
     moveTask(taskId: string, status: TaskStatus) {
@@ -135,6 +150,24 @@ export function useTasksStore() {
       };
 
       emitChange();
+      saveToStorage();
+    },
+
+    updateTask(taskId: string, updates: Partial<Omit<Task, "id">>) {
+      state = {
+        ...state,
+        tasks: state.tasks.map((task) =>
+          task.id === taskId
+            ? {
+                ...task,
+                ...updates,
+              }
+            : task,
+        ),
+      };
+
+      emitChange();
+      saveToStorage();
     },
 
     deleteTask(taskId: string) {
@@ -144,6 +177,7 @@ export function useTasksStore() {
       };
 
       emitChange();
+      saveToStorage();
     },
   };
 }

@@ -4,10 +4,9 @@ import { useTasksStore } from "../store/useTasksStore";
 import type { Task, TaskPriority, TaskStatus } from "../store/useTasksStore";
 
 const columns: { title: string; status: TaskStatus }[] = [
-  { title: "לביצוע", status: "todo" },
-  { title: "בתהליך", status: "inProgress" },
-  { title: "בבדיקה", status: "review" },
-  { title: "בוצע", status: "done" },
+  { title: "חדש", status: "todo" },
+  { title: "בעבודה", status: "inProgress" },
+  { title: "סגור", status: "done" },
 ];
 
 const priorityStyles: Record<TaskPriority, string> = {
@@ -25,12 +24,21 @@ const priorityLabels: Record<TaskPriority, string> = {
 };
 
 function TaskCard({ task }: { task: Task }) {
-  const { moveTask, deleteTask } = useTasksStore();
+  const { deleteTask, updateTask } = useTasksStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState(task.title);
+  const [dueDate, setDueDate] = useState(task.dueDate);
+  const [priority, setPriority] = useState<TaskPriority>(task.priority);
   const isDone = task.status === "done";
 
   return (
     <div
-      className={`group rounded-xl border border-outline-variant/30 bg-white p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] ${
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.setData("text/plain", task.id);
+        event.dataTransfer.effectAllowed = "move";
+      }}
+      className={`group cursor-grab rounded-xl border border-outline-variant/30 bg-white p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 active:cursor-grabbing hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] ${
         task.status === "inProgress" ? "border-r-4 border-r-secondary" : ""
       } ${isDone ? "bg-white/60 opacity-80 grayscale-[0.4]" : ""}`}
     >
@@ -39,66 +47,76 @@ function TaskCard({ task }: { task: Task }) {
           {priorityLabels[task.priority]}
         </span>
 
-        <button
-          className="text-slate-300 opacity-0 transition-opacity hover:text-error group-hover:opacity-100"
-          type="button"
-          onClick={() => deleteTask(task.id)}
-          aria-label="מחיקת משימה"
-        >
-          <span className="material-symbols-outlined text-lg">delete</span>
-        </button>
+        <div className="flex items-center">
+          <button
+            className="mr-2 text-slate-300 opacity-0 transition-opacity hover:text-secondary group-hover:opacity-100"
+            type="button"
+            onClick={() => setIsEditing((v) => !v)}
+            aria-label="עריכת משימה"
+          >
+            <span className="material-symbols-outlined text-lg">edit</span>
+          </button>
+
+          <button
+            className="text-slate-300 opacity-0 transition-opacity hover:text-error group-hover:opacity-100"
+            type="button"
+            onClick={() => deleteTask(task.id)}
+            aria-label="מחיקת משימה"
+          >
+            <span className="material-symbols-outlined text-lg">delete</span>
+          </button>
+        </div>
       </div>
 
-      <h4 className={`mb-4 text-body-md text-on-surface ${isDone ? "line-through" : ""}`}>
-        {task.title}
-      </h4>
+      {!isEditing ? (
+        <>
+          <h4 className={`mb-4 text-body-md text-on-surface ${isDone ? "line-through" : ""}`}>
+            {task.title}
+          </h4>
 
-      <div className="mb-4 flex items-center text-body-sm text-on-surface-variant">
-        <span className="material-symbols-outlined ml-1 text-[18px]">calendar_today</span>
-        {task.dueDate}
-      </div>
+          <div className="mb-4 flex items-center text-body-sm text-on-surface-variant">
+            <span className="material-symbols-outlined ml-1 text-[18px]">calendar_today</span>
+            {task.dueDate}
+          </div>
+        </>
+      ) : (
+        <div className="mb-4 space-y-3">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded-lg border border-outline-variant px-3 py-2 text-sm"
+            placeholder="כותרת"
+          />
 
-      <div className="grid grid-cols-2 gap-2">
-        {task.status !== "todo" && (
-          <button
-            className="rounded-lg border border-outline-variant px-3 py-2 text-xs font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
-            type="button"
-            onClick={() => moveTask(task.id, "todo")}
+          <input
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full rounded-lg border border-outline-variant px-3 py-2 text-sm"
+            placeholder="תאריך"
+          />
+
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as TaskPriority)}
+            className="w-full rounded-lg border border-outline-variant px-3 py-2 text-sm"
           >
-            לביצוע
-          </button>
-        )}
+            <option value="low">נמוך</option>
+            <option value="medium">בינוני</option>
+            <option value="high">גבוה</option>
+          </select>
 
-        {task.status !== "inProgress" && (
           <button
-            className="rounded-lg border border-outline-variant px-3 py-2 text-xs font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
+            className="w-full rounded-lg bg-primary py-2 text-sm font-semibold text-white"
+            onClick={() => {
+              updateTask(task.id, { title, dueDate, priority });
+              setIsEditing(false);
+            }}
             type="button"
-            onClick={() => moveTask(task.id, "inProgress")}
           >
-            לתהליך
+            שמור
           </button>
-        )}
-
-        {task.status !== "review" && (
-          <button
-            className="rounded-lg border border-outline-variant px-3 py-2 text-xs font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
-            type="button"
-            onClick={() => moveTask(task.id, "review")}
-          >
-            לבדיקה
-          </button>
-        )}
-
-        {task.status !== "done" && (
-          <button
-            className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
-            type="button"
-            onClick={() => moveTask(task.id, "done")}
-          >
-            בוצע
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -133,16 +151,14 @@ function AddTaskForm({ status }: { status: TaskStatus }) {
 }
 
 export default function TasksPage() {
-  const { tasks } = useTasksStore();
+  const { tasks, moveTask } = useTasksStore();
 
   const activeTasks = tasks.filter((task) => task.status !== "done").length;
-  const reviewTasks = tasks.filter((task) => task.status === "review").length;
   const completedTasks = tasks.filter((task) => task.status === "done").length;
   const urgentTasks = tasks.filter((task) => task.priority === "high" && task.status !== "done").length;
 
   const stats = [
     { label: "משימות פעילות", value: String(activeTasks).padStart(2, "0") },
-    { label: "ממתין לסקירה", value: String(reviewTasks).padStart(2, "0") },
     { label: "הושלמו היום", value: String(completedTasks).padStart(2, "0"), highlight: true },
     { label: "מועד הגשה קרוב", value: String(urgentTasks).padStart(2, "0"), danger: true },
   ];
@@ -202,7 +218,17 @@ export default function TasksPage() {
                   </span>
                 </div>
 
-                <div className="flex min-h-[360px] flex-1 flex-col gap-4 rounded-2xl bg-slate-50/60 p-3">
+                <div
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    const taskId = event.dataTransfer.getData("text/plain");
+                    if (taskId) {
+                      moveTask(taskId, column.status);
+                    }
+                  }}
+                  className="flex min-h-[360px] flex-1 flex-col gap-4 rounded-2xl border-2 border-dashed border-transparent bg-slate-50/60 p-3 transition-colors hover:border-secondary/20"
+                >
                   {columnTasks.map((task) => (
                     <TaskCard key={task.id} task={task} />
                   ))}
