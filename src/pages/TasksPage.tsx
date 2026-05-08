@@ -3,14 +3,8 @@ import AddTaskModal from "../components/tasks/AddTaskModal";
 import KanbanColumn from "../components/tasks/KanbanColumn";
 import TasksStats from "../components/tasks/TasksStats";
 import TasksInsights from "../components/tasks/TasksInsights";
+import { taskColumns } from "../components/tasks/tasksColumns";
 import { useTasksStore } from "../store/useTasksStore";
-import type { TaskStatus } from "../store/useTasksStore";
-
-const columns: { title: string; status: TaskStatus }[] = [
-  { title: "חדש", status: "todo" },
-  { title: "בעבודה", status: "inProgress" },
-  { title: "סגור", status: "done" },
-];
 
 
 export default function TasksPage() {
@@ -19,9 +13,6 @@ export default function TasksPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null);
 
-  const handleDropTask = (taskId: string, newStatus: TaskStatus) => {
-    moveTask(taskId, newStatus);
-  };
 
   return (
     <main className="min-h-screen bg-surface px-8 pt-24 pb-12 text-on-surface">
@@ -47,7 +38,7 @@ export default function TasksPage() {
 
         {/* Kanban */}
         <section className="mb-8 flex gap-gutter overflow-x-auto pb-8">
-          {columns.map((column) => {
+          {taskColumns.map((column) => {
             const columnTasks = tasks.filter((task) => task.status === column.status);
 
             return (
@@ -57,7 +48,7 @@ export default function TasksPage() {
                 status={column.status}
                 tasks={columnTasks}
                 highlightedTaskId={highlightedTaskId}
-                onDropTask={handleDropTask}
+                onDropTask={moveTask}
               />
             );
           })}
