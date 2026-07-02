@@ -11,7 +11,7 @@ export default function TasksStats({ tasks }: TasksStatsProps) {
     (task) => task.status === "inProgress"
   ).length;
 
-  const completedToday = tasks.filter(
+  const completedTasks = tasks.filter(
     (task) => task.status === "done"
   ).length;
 
@@ -32,7 +32,7 @@ export default function TasksStats({ tasks }: TasksStatsProps) {
     },
     {
       label: "הושלמו",
-      value: completedToday,
+      value: completedTasks,
       valueClass: "text-on-tertiary-container",
     },
     {
