@@ -26,15 +26,23 @@ function getFocusTask(tasks: Task[]) {
         return 1;
       }
 
-      if (firstTask.status === "inProgress" && secondTask.status !== "inProgress") {
+      if (
+        firstTask.status === "inProgress" &&
+        secondTask.status !== "inProgress"
+      ) {
         return -1;
       }
 
-      if (firstTask.status !== "inProgress" && secondTask.status === "inProgress") {
+      if (
+        firstTask.status !== "inProgress" &&
+        secondTask.status === "inProgress"
+      ) {
         return 1;
       }
 
-      return getTaskDate(firstTask).getTime() - getTaskDate(secondTask).getTime();
+      return (
+        getTaskDate(firstTask).getTime() - getTaskDate(secondTask).getTime()
+      );
     })[0];
 }
 
@@ -148,7 +156,10 @@ export default function FocusSession({ tasks }: FocusSessionProps) {
       </div>
 
       {/* Button */}
-      <button className="mt-6 w-full rounded-xl bg-surface-container py-3 text-sm font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white">
+      <button
+        type="button"
+        className="mt-6 w-full rounded-xl bg-surface-container py-3 text-sm font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white"
+      >
         {focusTask ? "התחל סשן פוקוס" : "פתח משימה חדשה"}
       </button>
     </div>

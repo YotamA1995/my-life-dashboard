@@ -90,7 +90,7 @@ export default function DashboardPage() {
         <div className="mt-8 grid grid-cols-12 items-stretch gap-gutter">
           <ProductivityChart tasks={tasks} />
           <FocusSession tasks={tasks} />
-          <NetworkActivity />
+          <NetworkActivity tasks={tasks} />
           <WellnessCard />
         </div>
       </div>
