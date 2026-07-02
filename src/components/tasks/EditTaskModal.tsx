@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTasksStore } from "../../store/useTasksStore";
-import type { Task, TaskPriority } from "../../store/useTasksStore";
+import type { Task, TaskCategory, TaskPriority } from "../../store/useTasksStore";
 import { Button, Input, Modal } from "../ui";
 
 function getTodayDate() {
@@ -27,6 +27,8 @@ export default function EditTaskModal({
     task.priority === "completed" ? "medium" : task.priority,
   );
 
+  const [category, setCategory] = useState<TaskCategory>(task.category);
+
   function handleSave() {
     if (!title.trim()) {
       return;
@@ -38,6 +40,7 @@ export default function EditTaskModal({
       title: title.trim(),
       dueDate: normalizedDueDate,
       priority: task.status === "done" ? "completed" : priority,
+      category,
     });
 
     onClose();
@@ -104,6 +107,25 @@ export default function EditTaskModal({
             </select>
           </div>
         )}
+        <div className="flex flex-col gap-2">
+          <label className="text-label-lg font-medium text-on-surface">
+            תחום
+          </label>
+
+          <select
+            value={category}
+            onChange={(event) =>
+              setCategory(event.target.value as TaskCategory)
+            }
+            className="h-11 rounded-xl border border-outline-variant bg-surface px-4 text-body-lg text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="personal">אישי</option>
+            <option value="work">עבודה</option>
+            <option value="security">ביטחון / מלונות</option>
+            <option value="project">פרויקט</option>
+            <option value="home">בית</option>
+          </select>
+        </div>
       </div>
     </Modal>
   );

@@ -5,12 +5,15 @@ export type TaskStatus = "todo" | "inProgress" | "done";
 
 export type TaskPriority = "low" | "medium" | "high" | "completed";
 
+export type TaskCategory = "work" | "home" | "project" | "personal" | "security";
+
 export type Task = {
   id: string;
   title: string;
   dueDate: string;
   status: TaskStatus;
   priority: TaskPriority;
+  category: TaskCategory;
 };
 
 type TasksStore = {
@@ -21,6 +24,7 @@ type TasksStore = {
     status?: TaskStatus,
     dueDate?: string,
     priority?: TaskPriority,
+    category?: TaskCategory,
   ) => string | undefined;
 
   moveTask: (taskId: string, status: TaskStatus) => void;
@@ -40,6 +44,7 @@ const initialTasks: Task[] = [
     dueDate: "2026-10-12",
     status: "todo",
     priority: "medium",
+    category: "work",
   },
   {
     id: "task-2",
@@ -47,6 +52,7 @@ const initialTasks: Task[] = [
     dueDate: "2026-10-20",
     status: "todo",
     priority: "low",
+    category: "project",
   },
   {
     id: "task-3",
@@ -54,6 +60,7 @@ const initialTasks: Task[] = [
     dueDate: "2026-10-10",
     status: "inProgress",
     priority: "high",
+    category: "work",
   },
   {
     id: "task-4",
@@ -61,6 +68,7 @@ const initialTasks: Task[] = [
     dueDate: "2026-10-14",
     status: "inProgress",
     priority: "medium",
+    category: "security",
   },
   {
     id: "task-5",
@@ -68,6 +76,7 @@ const initialTasks: Task[] = [
     dueDate: "2026-10-08",
     status: "todo",
     priority: "low",
+    category: "project",
   },
   {
     id: "task-6",
@@ -75,6 +84,7 @@ const initialTasks: Task[] = [
     dueDate: "2026-10-05",
     status: "done",
     priority: "completed",
+    category: "personal",
   },
   {
     id: "task-7",
@@ -82,6 +92,7 @@ const initialTasks: Task[] = [
     dueDate: "2026-10-01",
     status: "done",
     priority: "completed",
+    category: "work",
   },
 ];
 
@@ -116,6 +127,32 @@ function normalizeTaskPriority(
   return "medium";
 }
 
+function normalizeTaskCategory(category: unknown): TaskCategory {
+  if (
+    category === "work" ||
+    category === "home" ||
+    category === "project" ||
+    category === "personal" ||
+    category === "security"
+  ) {
+    return category;
+  }
+
+  return "personal";
+}
+
+function normalizeTask(task: Partial<Task> & Pick<Task, "id" | "title">): Task {
+  const status = normalizeTaskStatus(task.status);
+
+  return {
+    ...task,
+    dueDate: normalizeTaskDueDate(task.dueDate),
+    status,
+    priority: normalizeTaskPriority(task.priority, status),
+    category: normalizeTaskCategory(task.category),
+  };
+}
+
 function normalizeTaskDueDate(dueDate?: string) {
   if (!dueDate || dueDate === "היום") {
     return getTodayDate();
@@ -136,23 +173,12 @@ function normalizeTaskDueDate(dueDate?: string) {
   return parsedDate.toISOString().split("T")[0];
 }
 
-function normalizeTask(task: Task): Task {
-  const status = normalizeTaskStatus(task.status);
-
-  return {
-    ...task,
-    dueDate: normalizeTaskDueDate(task.dueDate),
-    status,
-    priority: normalizeTaskPriority(task.priority, status),
-  };
-}
-
 export const useTasksStore = create<TasksStore>()(
   persist(
     (set) => ({
       tasks: initialTasks.map(normalizeTask),
 
-      addTask(title, status = "todo", dueDate, priority = "medium") {
+      addTask(title, status = "todo", dueDate, priority = "medium", category = "personal") {
         const cleanTitle = title.trim();
 
         if (!cleanTitle) {
@@ -167,6 +193,7 @@ export const useTasksStore = create<TasksStore>()(
           dueDate: normalizeTaskDueDate(dueDate),
           status: normalizedStatus,
           priority: normalizeTaskPriority(priority, normalizedStatus),
+          category: normalizeTaskCategory(category),
         };
 
         set((state) => ({
@@ -217,6 +244,7 @@ export const useTasksStore = create<TasksStore>()(
                 updates.priority ?? task.priority,
                 nextStatus,
               ),
+              category: normalizeTaskCategory(updates.category ?? task.category),
             };
           }),
         }));
@@ -230,7 +258,7 @@ export const useTasksStore = create<TasksStore>()(
     }),
     {
       name: "tasks-storage",
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         tasks: state.tasks,
@@ -242,7 +270,7 @@ export const useTasksStore = create<TasksStore>()(
           };
         }
 
-        const state = persistedState as { tasks?: Task[] };
+        const state = persistedState as { tasks?: Array<Partial<Task> & Pick<Task, "id" | "title">> };
 
         return {
           tasks: Array.isArray(state.tasks)

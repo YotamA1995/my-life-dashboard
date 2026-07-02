@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useTasksStore } from "../../store/useTasksStore";
-import type { TaskPriority, TaskStatus } from "../../store/useTasksStore";
+import type { TaskCategory, TaskPriority, TaskStatus } from "../../store/useTasksStore";
 
 function getTodayDate() {
   return new Date().toISOString().split("T")[0];
@@ -21,6 +21,7 @@ export default function AddTaskModal({
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState(getTodayDate());
   const [priority, setPriority] = useState<TaskPriority>("medium");
+  const [category, setCategory] = useState<TaskCategory>("personal");
   const [status, setStatus] = useState<TaskStatus>("todo");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -37,6 +38,7 @@ export default function AddTaskModal({
       status,
       normalizedDueDate,
       priority,
+      category,
     );
 
     onClose();
@@ -104,6 +106,20 @@ export default function AddTaskModal({
             <option value="low">עדיפות נמוכה</option>
             <option value="medium">עדיפות בינונית</option>
             <option value="high">עדיפות גבוהה</option>
+          </select>
+
+          <select
+            value={category}
+            onChange={(event) =>
+              setCategory(event.target.value as TaskCategory)
+            }
+            className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
+          >
+            <option value="personal">אישי</option>
+            <option value="work">עבודה</option>
+            <option value="security">ביטחון / מלונות</option>
+            <option value="project">פרויקט</option>
+            <option value="home">בית</option>
           </select>
 
           <select

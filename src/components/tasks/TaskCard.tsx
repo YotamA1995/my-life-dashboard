@@ -28,6 +28,34 @@ const priorityMap = {
   },
 };
 
+const categoryMap = {
+  personal: {
+    label: "אישי",
+    icon: "person",
+    classes: "bg-slate-100 text-slate-700",
+  },
+  work: {
+    label: "עבודה",
+    icon: "work",
+    classes: "bg-blue-50 text-blue-700",
+  },
+  security: {
+    label: "ביטחון / מלונות",
+    icon: "admin_panel_settings",
+    classes: "bg-emerald-50 text-emerald-700",
+  },
+  project: {
+    label: "פרויקט",
+    icon: "rocket_launch",
+    classes: "bg-purple-50 text-purple-700",
+  },
+  home: {
+    label: "בית",
+    icon: "home",
+    classes: "bg-orange-50 text-orange-700",
+  },
+};
+
 export default function TaskCard({
   task,
   isHighlighted,
@@ -36,6 +64,7 @@ export default function TaskCard({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const priority = priorityMap[task.priority] ?? priorityMap.medium;
+  const category = categoryMap[task.category] ?? categoryMap.personal;
   const isDone = task.status === "done";
   const overdue = isOverdue(task.dueDate) && !isDone;
 
@@ -54,11 +83,22 @@ export default function TaskCard({
       }`}
     >
       <div className="mb-3 flex items-start justify-between">
-        <span
-          className={`rounded px-2 py-1 text-label-caps font-label-caps ${priority.classes}`}
-        >
-          {priority.label}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`rounded px-2 py-1 text-label-caps font-label-caps ${priority.classes}`}
+          >
+            {priority.label}
+          </span>
+
+          <span
+            className={`inline-flex items-center gap-1 rounded px-2 py-1 text-label-caps font-label-caps ${category.classes}`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {category.icon}
+            </span>
+            {category.label}
+          </span>
+        </div>
 
         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
           <button
