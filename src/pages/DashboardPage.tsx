@@ -91,7 +91,7 @@ export default function DashboardPage() {
           <ProductivityChart tasks={tasks} />
           <FocusSession tasks={tasks} />
           <NetworkActivity tasks={tasks} />
-          <WellnessCard />
+          <WellnessCard tasks={tasks} />
         </div>
       </div>
     </main>
