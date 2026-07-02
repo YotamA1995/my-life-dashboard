@@ -1,6 +1,5 @@
-
-
 import type {
+  TaskCategory,
   TaskPriority,
   TaskStatus,
 } from "../../store/useTasksStore";
@@ -9,9 +8,11 @@ type TasksToolbarProps = {
   search: string;
   selectedStatus: TaskStatus | "all";
   selectedPriority: TaskPriority | "all";
+  selectedCategory: TaskCategory | "all";
   onSearchChange: (value: string) => void;
   onStatusChange: (value: TaskStatus | "all") => void;
   onPriorityChange: (value: TaskPriority | "all") => void;
+  onCategoryChange: (value: TaskCategory | "all") => void;
   onReset: () => void;
 };
 
@@ -19,9 +20,11 @@ export default function TasksToolbar({
   search,
   selectedStatus,
   selectedPriority,
+  selectedCategory,
   onSearchChange,
   onStatusChange,
   onPriorityChange,
+  onCategoryChange,
   onReset,
 }: TasksToolbarProps) {
   return (
@@ -65,6 +68,21 @@ export default function TasksToolbar({
             <option value="low">נמוכה</option>
             <option value="medium">בינונית</option>
             <option value="high">גבוהה</option>
+          </select>
+
+          <select
+            value={selectedCategory}
+            onChange={(event) =>
+              onCategoryChange(event.target.value as TaskCategory | "all")
+            }
+            className="rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm outline-none transition-all focus:ring-2 focus:ring-secondary"
+          >
+            <option value="all">כל התחומים</option>
+            <option value="personal">אישי</option>
+            <option value="work">עבודה</option>
+            <option value="security">ביטחון / מלונות</option>
+            <option value="project">פרויקט</option>
+            <option value="home">בית</option>
           </select>
         </div>
 

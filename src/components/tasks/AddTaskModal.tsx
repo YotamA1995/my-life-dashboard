@@ -19,6 +19,7 @@ export default function AddTaskModal({
   const { addTask } = useTasksStore();
 
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState(getTodayDate());
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [category, setCategory] = useState<TaskCategory>("personal");
@@ -39,9 +40,14 @@ export default function AddTaskModal({
       normalizedDueDate,
       priority,
       category,
+      description,
     );
 
     onClose();
+
+    if (!newTaskId) {
+      return;
+    }
 
     setTimeout(() => {
       const element = document.getElementById(`task-${newTaskId}`);
@@ -87,6 +93,14 @@ export default function AddTaskModal({
             placeholder="שם המשימה"
             className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
             autoFocus
+          />
+
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="תיאור המשימה / הערות נוספות"
+            rows={3}
+            className="w-full resize-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
           />
 
           <input

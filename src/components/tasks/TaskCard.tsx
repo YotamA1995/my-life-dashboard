@@ -123,12 +123,18 @@ export default function TaskCard({
       </div>
 
       <h4
-        className={`mb-4 text-body-md font-h3 text-on-surface ${
+        className={`mb-2 text-body-md font-h3 text-on-surface ${
           isDone ? "line-through" : ""
         }`}
       >
         {task.title}
       </h4>
+
+      {task.description && (
+        <p className="mb-4 line-clamp-2 text-body-sm text-on-surface-variant">
+          {task.description}
+        </p>
+      )}
 
       <div
         className={`flex items-center text-body-sm ${

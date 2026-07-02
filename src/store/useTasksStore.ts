@@ -10,6 +10,7 @@ export type TaskCategory = "work" | "home" | "project" | "personal" | "security"
 export type Task = {
   id: string;
   title: string;
+  description: string;
   dueDate: string;
   status: TaskStatus;
   priority: TaskPriority;
@@ -25,6 +26,7 @@ type TasksStore = {
     dueDate?: string,
     priority?: TaskPriority,
     category?: TaskCategory,
+    description?: string,
   ) => string | undefined;
 
   moveTask: (taskId: string, status: TaskStatus) => void;
@@ -41,6 +43,7 @@ const initialTasks: Task[] = [
   {
     id: "task-1",
     title: "עדכון מבנה הדיווח הפיננסי לרבעון השלישי",
+    description: "בדיקת מבנה הנתונים והכנת תצוגה ברורה יותר לדשבורד הכספים.",
     dueDate: "2026-10-12",
     status: "todo",
     priority: "medium",
@@ -49,6 +52,7 @@ const initialTasks: Task[] = [
   {
     id: "task-2",
     title: "ארכוב נכסי פרויקט 2022",
+    description: "סידור חומרים ישנים מהפרויקט והכנה להעברה לארכיון מסודר.",
     dueDate: "2026-10-20",
     status: "todo",
     priority: "low",
@@ -57,6 +61,7 @@ const initialTasks: Task[] = [
   {
     id: "task-3",
     title: "קליטת לקוח: אינטגרציית חבילת שירותים מקצועית",
+    description: "השלמת משימות פתוחות בתהליך הקליטה והגדרת השלבים הבאים מול הגורמים הרלוונטיים.",
     dueDate: "2026-10-10",
     status: "inProgress",
     priority: "high",
@@ -65,6 +70,7 @@ const initialTasks: Task[] = [
   {
     id: "task-4",
     title: "סקירת פרוטוקולי אבטחת מערכת",
+    description: "בדיקת נהלי אבטחה קיימים וזיהוי פערים שדורשים טיפול.",
     dueDate: "2026-10-14",
     status: "inProgress",
     priority: "medium",
@@ -73,6 +79,7 @@ const initialTasks: Task[] = [
   {
     id: "task-5",
     title: "אימות תיעוד API",
+    description: "מעבר על התיעוד הקיים ווידוא שהוא תואם למימוש בפועל.",
     dueDate: "2026-10-08",
     status: "todo",
     priority: "low",
@@ -81,6 +88,7 @@ const initialTasks: Task[] = [
   {
     id: "task-6",
     title: "פגישת סנכרון רבעונית",
+    description: "סיכום סטטוס רבעוני והחלטות להמשך עבודה.",
     dueDate: "2026-10-05",
     status: "done",
     priority: "completed",
@@ -89,6 +97,7 @@ const initialTasks: Task[] = [
   {
     id: "task-7",
     title: "טיוטת ספר עובדים גרסה 2.1",
+    description: "עדכון טיוטת הנהלים והכנתה לסבב הערות נוסף.",
     dueDate: "2026-10-01",
     status: "done",
     priority: "completed",
@@ -141,11 +150,20 @@ function normalizeTaskCategory(category: unknown): TaskCategory {
   return "personal";
 }
 
+function normalizeTaskDescription(description: unknown) {
+  if (typeof description !== "string") {
+    return "";
+  }
+
+  return description.trim();
+}
+
 function normalizeTask(task: Partial<Task> & Pick<Task, "id" | "title">): Task {
   const status = normalizeTaskStatus(task.status);
 
   return {
     ...task,
+    description: normalizeTaskDescription(task.description),
     dueDate: normalizeTaskDueDate(task.dueDate),
     status,
     priority: normalizeTaskPriority(task.priority, status),
@@ -178,7 +196,14 @@ export const useTasksStore = create<TasksStore>()(
     (set) => ({
       tasks: initialTasks.map(normalizeTask),
 
-      addTask(title, status = "todo", dueDate, priority = "medium", category = "personal") {
+      addTask(
+        title,
+        status = "todo",
+        dueDate,
+        priority = "medium",
+        category = "personal",
+        description = "",
+      ) {
         const cleanTitle = title.trim();
 
         if (!cleanTitle) {
@@ -190,6 +215,7 @@ export const useTasksStore = create<TasksStore>()(
         const newTask: Task = {
           id: createTaskId(),
           title: cleanTitle,
+          description: normalizeTaskDescription(description),
           dueDate: normalizeTaskDueDate(dueDate),
           status: normalizedStatus,
           priority: normalizeTaskPriority(priority, normalizedStatus),
@@ -239,6 +265,9 @@ export const useTasksStore = create<TasksStore>()(
               ...task,
               ...updates,
               status: nextStatus,
+              description: normalizeTaskDescription(
+                updates.description ?? task.description,
+              ),
               dueDate: normalizeTaskDueDate(updates.dueDate ?? task.dueDate),
               priority: normalizeTaskPriority(
                 updates.priority ?? task.priority,
@@ -258,7 +287,7 @@ export const useTasksStore = create<TasksStore>()(
     }),
     {
       name: "tasks-storage",
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         tasks: state.tasks,

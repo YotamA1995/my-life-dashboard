@@ -19,6 +19,7 @@ export default function EditTaskModal({
   const { updateTask } = useTasksStore();
 
   const [title, setTitle] = useState(task.title);
+  const [description, setDescription] = useState(task.description);
   const [dueDate, setDueDate] = useState(
     task.dueDate || getTodayDate(),
   );
@@ -38,6 +39,7 @@ export default function EditTaskModal({
 
     updateTask(task.id, {
       title: title.trim(),
+      description,
       dueDate: normalizedDueDate,
       priority: task.status === "done" ? "completed" : priority,
       category,
@@ -80,6 +82,20 @@ export default function EditTaskModal({
           onChange={(event) => setTitle(event.target.value)}
           placeholder="הכנס שם משימה"
         />
+
+        <div className="flex flex-col gap-2">
+          <label className="text-label-lg font-medium text-on-surface">
+            תיאור המשימה
+          </label>
+
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="הוסף פירוט, הערות או הקשר למשימה"
+            rows={3}
+            className="resize-none rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-lg text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
 
         <Input
           label="תאריך יעד"

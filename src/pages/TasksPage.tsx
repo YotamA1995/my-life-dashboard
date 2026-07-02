@@ -6,7 +6,11 @@ import TasksInsights from "../components/tasks/TasksInsights";
 import TasksToolbar from "../components/tasks/TasksToolbar";
 import { taskColumns } from "../components/tasks/tasksColumns";
 import { useTasksStore } from "../store/useTasksStore";
-import type { TaskPriority, TaskStatus } from "../store/useTasksStore";
+import type {
+  TaskCategory,
+  TaskPriority,
+  TaskStatus,
+} from "../store/useTasksStore";
 
 
 export default function TasksPage() {
@@ -18,6 +22,7 @@ export default function TasksPage() {
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus | "all">("all");
   const [selectedPriority, setSelectedPriority] = useState<TaskPriority | "all">("all");
+  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | "all">("all");
 
   const filteredTasks = tasks.filter((task) => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -32,13 +37,17 @@ export default function TasksPage() {
     const matchesPriority =
       selectedPriority === "all" || task.priority === selectedPriority;
 
-    return matchesSearch && matchesStatus && matchesPriority;
+    const matchesCategory =
+      selectedCategory === "all" || task.category === selectedCategory;
+
+    return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
   });
 
   function resetFilters() {
     setSearch("");
     setSelectedStatus("all");
     setSelectedPriority("all");
+    setSelectedCategory("all");
   }
 
 
@@ -68,9 +77,11 @@ export default function TasksPage() {
           search={search}
           selectedStatus={selectedStatus}
           selectedPriority={selectedPriority}
+          selectedCategory={selectedCategory}
           onSearchChange={setSearch}
           onStatusChange={setSelectedStatus}
           onPriorityChange={setSelectedPriority}
+          onCategoryChange={setSelectedCategory}
           onReset={resetFilters}
         />
 
