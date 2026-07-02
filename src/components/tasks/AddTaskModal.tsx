@@ -64,10 +64,10 @@ export default function AddTaskModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-primary/40 p-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-primary/40 p-6 backdrop-blur-sm">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-lg rounded-2xl border border-outline-variant bg-white p-card-padding shadow-[0px_20px_60px_rgba(0,0,0,0.18)]"
+        className="max-h-[calc(100vh-48px)] w-full max-w-lg overflow-y-auto rounded-2xl border border-outline-variant bg-white p-card-padding shadow-[0px_20px_60px_rgba(0,0,0,0.18)]"
       >
         <div className="mb-6 flex items-start justify-between">
           <div>
@@ -87,64 +87,102 @@ export default function AddTaskModal({
         </div>
 
         <div className="space-y-4">
-          <input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="שם המשימה"
-            className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
-            autoFocus
-          />
+          <div className="flex flex-col gap-2">
+            <label className="text-label-lg font-medium text-on-surface">
+              שם המשימה
+            </label>
 
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="תיאור המשימה / הערות נוספות"
-            rows={3}
-            className="w-full resize-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
-          />
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="לדוגמה: בדיקת ציוד חירום"
+              className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
+              autoFocus
+            />
+          </div>
 
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(event) => setDueDate(event.target.value)}
-            className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
-          />
+          <div className="flex flex-col gap-2">
+            <label className="text-label-lg font-medium text-on-surface">
+              תיאור המשימה
+            </label>
 
-          <select
-            value={priority}
-            onChange={(event) =>
-              setPriority(event.target.value as TaskPriority)
-            }
-            className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
-          >
-            <option value="low">עדיפות נמוכה</option>
-            <option value="medium">עדיפות בינונית</option>
-            <option value="high">עדיפות גבוהה</option>
-          </select>
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="הוסף פירוט, הערות או הקשר למשימה"
+              rows={3}
+              className="w-full resize-none rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
+            />
+          </div>
 
-          <select
-            value={category}
-            onChange={(event) =>
-              setCategory(event.target.value as TaskCategory)
-            }
-            className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
-          >
-            <option value="personal">אישי</option>
-            <option value="work">עבודה</option>
-            <option value="security">ביטחון / מלונות</option>
-            <option value="project">פרויקט</option>
-            <option value="home">בית</option>
-          </select>
+          <div className="flex flex-col gap-2">
+            <label className="text-label-lg font-medium text-on-surface">
+              תאריך יעד
+            </label>
 
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value as TaskStatus)}
-            className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
-          >
-            <option value="todo">חדש</option>
-            <option value="inProgress">בעבודה</option>
-            <option value="done">סגור</option>
-          </select>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(event) => setDueDate(event.target.value)}
+              className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-label-lg font-medium text-on-surface">
+              סטטוס
+            </label>
+
+            <select
+              value={status}
+              onChange={(event) => setStatus(event.target.value as TaskStatus)}
+              className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
+            >
+              <option value="todo">חדש</option>
+              <option value="inProgress">בעבודה</option>
+              <option value="done">סגור</option>
+            </select>
+          </div>
+
+          {status !== "done" && (
+            <div className="flex flex-col gap-2">
+              <label className="text-label-lg font-medium text-on-surface">
+                רמת עדיפות
+              </label>
+
+              <select
+                value={priority}
+                onChange={(event) =>
+                  setPriority(event.target.value as TaskPriority)
+                }
+                className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
+              >
+                <option value="low">עדיפות נמוכה</option>
+                <option value="medium">עדיפות בינונית</option>
+                <option value="high">עדיפות גבוהה</option>
+              </select>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <label className="text-label-lg font-medium text-on-surface">
+              תחום
+            </label>
+
+            <select
+              value={category}
+              onChange={(event) =>
+                setCategory(event.target.value as TaskCategory)
+              }
+              className="w-full rounded-lg border border-outline-variant bg-white px-4 py-3 text-body-sm outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-secondary"
+            >
+              <option value="personal">אישי</option>
+              <option value="work">עבודה</option>
+              <option value="security">ביטחון / מלונות</option>
+              <option value="project">פרויקט</option>
+              <option value="home">בית</option>
+            </select>
+          </div>
         </div>
 
         <div className="mt-8 flex gap-3">

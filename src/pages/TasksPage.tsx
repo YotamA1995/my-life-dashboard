@@ -12,23 +12,52 @@ import type {
   TaskStatus,
 } from "../store/useTasksStore";
 
+function isTaskOverdue(task: { dueDate: string; status: TaskStatus }) {
+  if (task.status === "done") {
+    return false;
+  }
+
+  const dueDate = new Date(task.dueDate);
+
+  if (Number.isNaN(dueDate.getTime())) {
+    return false;
+  }
+
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+
+  return dueDate < today;
+}
 
 export default function TasksPage() {
   const { tasks, moveTask } = useTasksStore();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null);
+  const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(
+    null,
+  );
 
   const [search, setSearch] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState<TaskStatus | "all">("all");
-  const [selectedPriority, setSelectedPriority] = useState<TaskPriority | "all">("all");
-  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | "all">("all");
+  const [selectedStatus, setSelectedStatus] = useState<TaskStatus | "all">(
+    "all",
+  );
+  const [selectedPriority, setSelectedPriority] = useState<
+    TaskPriority | "all"
+  >("all");
+  const [selectedCategory, setSelectedCategory] = useState<
+    TaskCategory | "all"
+  >("all");
+  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
 
   const filteredTasks = tasks.filter((task) => {
     const normalizedSearch = search.trim().toLowerCase();
 
+    const searchableText = `${task.title} ${task.description}`.toLowerCase();
+
     const matchesSearch = normalizedSearch
-      ? task.title.toLowerCase().includes(normalizedSearch)
+      ? searchableText.includes(normalizedSearch)
       : true;
 
     const matchesStatus =
@@ -40,16 +69,33 @@ export default function TasksPage() {
     const matchesCategory =
       selectedCategory === "all" || task.category === selectedCategory;
 
-    return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
+    const matchesOverdue = !showOverdueOnly || isTaskOverdue(task);
+
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesPriority &&
+      matchesCategory &&
+      matchesOverdue
+    );
   });
+
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    selectedStatus !== "all" ||
+    selectedPriority !== "all" ||
+    selectedCategory !== "all" ||
+    showOverdueOnly;
+
+  const hasNoFilteredTasks = filteredTasks.length === 0;
 
   function resetFilters() {
     setSearch("");
     setSelectedStatus("all");
     setSelectedPriority("all");
     setSelectedCategory("all");
+    setShowOverdueOnly(false);
   }
-
 
   return (
     <main className="min-h-screen bg-surface px-8 pt-24 pb-12 text-on-surface">
@@ -78,34 +124,60 @@ export default function TasksPage() {
           selectedStatus={selectedStatus}
           selectedPriority={selectedPriority}
           selectedCategory={selectedCategory}
+          showOverdueOnly={showOverdueOnly}
           onSearchChange={setSearch}
           onStatusChange={setSelectedStatus}
           onPriorityChange={setSelectedPriority}
           onCategoryChange={setSelectedCategory}
+          onOverdueToggle={() =>
+            setShowOverdueOnly((currentValue) => !currentValue)
+          }
           onReset={resetFilters}
         />
 
         {/* Kanban */}
-        <section className="mb-8 flex gap-gutter overflow-x-auto pb-8">
-          {taskColumns.map((column) => {
-            const columnTasks = filteredTasks.filter(
-              (task) => task.status === column.status,
-            );
+        {hasNoFilteredTasks && hasActiveFilters ? (
+          <section className="mb-8 rounded-2xl border border-dashed border-outline-variant bg-white px-6 py-10 text-center shadow-[0px_4px_20px_rgba(0,0,0,0.04)]">
+            <span className="material-symbols-outlined text-[40px] text-on-surface-variant/70">
+              filter_alt_off
+            </span>
+            <h3 className="mt-3 text-h3 text-on-surface">
+              לא נמצאו משימות שמתאימות לסינון
+            </h3>
+            <p className="mx-auto mt-2 max-w-xl text-body-sm leading-6 text-on-surface-variant">
+              נסה לשנות את החיפוש או לנקות את הפילטרים כדי להציג שוב את כל
+              המשימות.
+            </p>
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="mt-5 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:opacity-90"
+            >
+              נקה פילטרים
+            </button>
+          </section>
+        ) : (
+          <section className="mb-8 flex gap-gutter overflow-x-auto pb-8">
+            {taskColumns.map((column) => {
+              const columnTasks = filteredTasks.filter(
+                (task) => task.status === column.status,
+              );
 
-            return (
-              <KanbanColumn
-                key={column.status}
-                title={column.title}
-                status={column.status}
-                tasks={columnTasks}
-                highlightedTaskId={highlightedTaskId}
-                onDropTask={moveTask}
-              />
-            );
-          })}
-        </section>
+              return (
+                <KanbanColumn
+                  key={column.status}
+                  title={column.title}
+                  status={column.status}
+                  tasks={columnTasks}
+                  highlightedTaskId={highlightedTaskId}
+                  onDropTask={moveTask}
+                />
+              );
+            })}
+          </section>
+        )}
 
-        <TasksInsights />
+        <TasksInsights tasks={tasks} />
         {isAddModalOpen && (
           <AddTaskModal
             onClose={() => setIsAddModalOpen(false)}

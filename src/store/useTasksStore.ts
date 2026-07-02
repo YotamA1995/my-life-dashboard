@@ -15,6 +15,7 @@ export type Task = {
   status: TaskStatus;
   priority: TaskPriority;
   category: TaskCategory;
+  completedAt?: string;
 };
 
 type TasksStore = {
@@ -109,6 +110,10 @@ function getTodayDate() {
   return new Date().toISOString().split("T")[0];
 }
 
+function getCurrentTimestamp() {
+  return new Date().toISOString();
+}
+
 function createTaskId() {
   return `task-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -158,6 +163,44 @@ function normalizeTaskDescription(description: unknown) {
   return description.trim();
 }
 
+
+function normalizeCompletedAt(completedAt: unknown, status: TaskStatus) {
+  if (status !== "done") {
+    return undefined;
+  }
+
+  if (typeof completedAt !== "string") {
+    return getCurrentTimestamp();
+  }
+
+  const parsedDate = new Date(completedAt);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return getCurrentTimestamp();
+  }
+
+  return completedAt;
+}
+
+function getTaskCompletionFields(
+  task: Task,
+  nextStatus: TaskStatus,
+  nextPriority?: TaskPriority,
+) {
+  const isMovingToDone = nextStatus === "done";
+  const wasAlreadyDone = task.status === "done";
+
+  return {
+    status: nextStatus,
+    priority: normalizeTaskPriority(nextPriority ?? task.priority, nextStatus),
+    completedAt: isMovingToDone
+      ? wasAlreadyDone
+        ? task.completedAt ?? getCurrentTimestamp()
+        : getCurrentTimestamp()
+      : undefined,
+  };
+}
+
 function normalizeTask(task: Partial<Task> & Pick<Task, "id" | "title">): Task {
   const status = normalizeTaskStatus(task.status);
 
@@ -168,6 +211,7 @@ function normalizeTask(task: Partial<Task> & Pick<Task, "id" | "title">): Task {
     status,
     priority: normalizeTaskPriority(task.priority, status),
     category: normalizeTaskCategory(task.category),
+    completedAt: normalizeCompletedAt(task.completedAt, status),
   };
 }
 
@@ -220,6 +264,7 @@ export const useTasksStore = create<TasksStore>()(
           status: normalizedStatus,
           priority: normalizeTaskPriority(priority, normalizedStatus),
           category: normalizeTaskCategory(category),
+          completedAt: normalizeCompletedAt(undefined, normalizedStatus),
         };
 
         set((state) => ({
@@ -233,20 +278,16 @@ export const useTasksStore = create<TasksStore>()(
         const normalizedStatus = normalizeTaskStatus(status);
 
         set((state) => ({
-          tasks: state.tasks.map((task) =>
-            task.id === taskId
-              ? {
-                  ...task,
-                  status: normalizedStatus,
-                  priority:
-                    normalizedStatus === "done"
-                      ? "completed"
-                      : task.priority === "completed"
-                        ? "medium"
-                        : task.priority,
-                }
-              : task,
-          ),
+          tasks: state.tasks.map((task) => {
+            if (task.id !== taskId) {
+              return task;
+            }
+
+            return {
+              ...task,
+              ...getTaskCompletionFields(task, normalizedStatus),
+            };
+          }),
         }));
       },
 
@@ -264,16 +305,16 @@ export const useTasksStore = create<TasksStore>()(
             return {
               ...task,
               ...updates,
-              status: nextStatus,
               description: normalizeTaskDescription(
                 updates.description ?? task.description,
               ),
               dueDate: normalizeTaskDueDate(updates.dueDate ?? task.dueDate),
-              priority: normalizeTaskPriority(
-                updates.priority ?? task.priority,
-                nextStatus,
-              ),
               category: normalizeTaskCategory(updates.category ?? task.category),
+              ...getTaskCompletionFields(
+                task,
+                nextStatus,
+                updates.priority ?? task.priority,
+              ),
             };
           }),
         }));
@@ -287,7 +328,7 @@ export const useTasksStore = create<TasksStore>()(
     }),
     {
       name: "tasks-storage",
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         tasks: state.tasks,

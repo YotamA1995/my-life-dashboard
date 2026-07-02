@@ -4,6 +4,41 @@ type TasksStatsProps = {
   tasks: Task[];
 };
 
+function isCompletedToday(completedAt?: string) {
+  if (!completedAt) {
+    return false;
+  }
+
+  const completedDate = new Date(completedAt);
+
+  if (Number.isNaN(completedDate.getTime())) {
+    return false;
+  }
+
+  const today = new Date();
+
+  return completedDate.toDateString() === today.toDateString();
+}
+
+function isTaskOverdue(task: Task) {
+  if (task.status === "done") {
+    return false;
+  }
+
+  const dueDate = new Date(task.dueDate);
+
+  if (Number.isNaN(dueDate.getTime())) {
+    return false;
+  }
+
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+
+  return dueDate < today;
+}
+
 export default function TasksStats({ tasks }: TasksStatsProps) {
   const activeTasks = tasks.filter((task) => task.status !== "done").length;
 
@@ -11,13 +46,11 @@ export default function TasksStats({ tasks }: TasksStatsProps) {
     (task) => task.status === "inProgress"
   ).length;
 
-  const completedTasks = tasks.filter(
-    (task) => task.status === "done"
+  const completedTodayTasks = tasks.filter((task) =>
+    isCompletedToday(task.completedAt)
   ).length;
 
-  const highPriorityTasks = tasks.filter(
-    (task) => task.priority === "high"
-  ).length;
+  const overdueTasks = tasks.filter(isTaskOverdue).length;
 
   const stats = [
     {
@@ -31,13 +64,13 @@ export default function TasksStats({ tasks }: TasksStatsProps) {
       valueClass: "text-on-surface",
     },
     {
-      label: "הושלמו",
-      value: completedTasks,
+      label: "הושלמו היום",
+      value: completedTodayTasks,
       valueClass: "text-on-tertiary-container",
     },
     {
-      label: "דחופות",
-      value: highPriorityTasks,
+      label: "באיחור",
+      value: overdueTasks,
       valueClass: "text-error",
     },
   ];

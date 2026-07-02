@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useTasksStore } from "../../store/useTasksStore";
-import type { Task, TaskCategory, TaskPriority } from "../../store/useTasksStore";
+import type {
+  Task,
+  TaskCategory,
+  TaskPriority,
+  TaskStatus,
+} from "../../store/useTasksStore";
 import { Button, Input, Modal } from "../ui";
 
 function getTodayDate() {
@@ -24,6 +29,8 @@ export default function EditTaskModal({
     task.dueDate || getTodayDate(),
   );
 
+  const [status, setStatus] = useState<TaskStatus>(task.status);
+
   const [priority, setPriority] = useState<TaskPriority>(
     task.priority === "completed" ? "medium" : task.priority,
   );
@@ -41,7 +48,8 @@ export default function EditTaskModal({
       title: title.trim(),
       description,
       dueDate: normalizedDueDate,
-      priority: task.status === "done" ? "completed" : priority,
+      status,
+      priority: status === "done" ? "completed" : priority,
       category,
     });
 
@@ -75,7 +83,7 @@ export default function EditTaskModal({
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="max-h-[calc(100vh-260px)] space-y-4 overflow-y-auto pr-1">
         <Input
           label="שם המשימה"
           value={title}
@@ -104,7 +112,23 @@ export default function EditTaskModal({
           onChange={(event) => setDueDate(event.target.value)}
         />
 
-        {task.status !== "done" && (
+        <div className="flex flex-col gap-2">
+          <label className="text-label-lg font-medium text-on-surface">
+            סטטוס
+          </label>
+
+          <select
+            value={status}
+            onChange={(event) => setStatus(event.target.value as TaskStatus)}
+            className="h-11 rounded-xl border border-outline-variant bg-surface px-4 text-body-lg text-on-surface outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="todo">חדש</option>
+            <option value="inProgress">בעבודה</option>
+            <option value="done">סגור</option>
+          </select>
+        </div>
+
+        {status !== "done" && (
           <div className="flex flex-col gap-2">
             <label className="text-label-lg font-medium text-on-surface">
               רמת עדיפות

@@ -56,6 +56,36 @@ const categoryMap = {
   },
 };
 
+function formatCompletedAt(completedAt?: string) {
+  if (!completedAt) {
+    return null;
+  }
+
+  const completedDate = new Date(completedAt);
+
+  if (Number.isNaN(completedDate.getTime())) {
+    return null;
+  }
+
+  const today = new Date();
+  const yesterday = new Date();
+
+  yesterday.setDate(today.getDate() - 1);
+
+  if (completedDate.toDateString() === today.toDateString()) {
+    return "הושלם היום";
+  }
+
+  if (completedDate.toDateString() === yesterday.toDateString()) {
+    return "הושלם אתמול";
+  }
+
+  return `הושלם ב-${new Intl.DateTimeFormat("he-IL", {
+    day: "2-digit",
+    month: "long",
+  }).format(completedDate)}`;
+}
+
 export default function TaskCard({
   task,
   isHighlighted,
@@ -67,6 +97,7 @@ export default function TaskCard({
   const category = categoryMap[task.category] ?? categoryMap.personal;
   const isDone = task.status === "done";
   const overdue = isOverdue(task.dueDate) && !isDone;
+  const completedLabel = formatCompletedAt(task.completedAt);
 
   return (
     <div
@@ -76,12 +107,15 @@ export default function TaskCard({
         event.dataTransfer.setData("text/plain", task.id);
         event.dataTransfer.effectAllowed = "move";
       }}
-      className={`group rounded-xl border border-outline-variant/30 bg-white p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] ${
+      className={`group relative overflow-hidden rounded-xl border border-outline-variant/30 bg-white p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] ${
         task.status === "inProgress" ? "border-r-4 border-r-secondary" : ""
-      } ${isDone ? "bg-white/60 opacity-80 grayscale-[0.4]" : ""} ${
+      } ${isDone ? "border-tertiary/30 bg-surface-container-low" : ""} ${
         isHighlighted ? "ring-2 ring-secondary ring-offset-2" : ""
       }`}
     >
+      {isDone && (
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-1 bg-tertiary" />
+      )}
       <div className="mb-3 flex items-start justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <span
@@ -123,28 +157,45 @@ export default function TaskCard({
       </div>
 
       <h4
-        className={`mb-2 text-body-md font-h3 text-on-surface ${
-          isDone ? "line-through" : ""
+        className={`mb-2 text-body-md font-h3 ${
+          isDone
+            ? "text-on-surface-variant line-through decoration-tertiary decoration-2"
+            : "text-on-surface"
         }`}
       >
         {task.title}
       </h4>
 
       {task.description && (
-        <p className="mb-4 line-clamp-2 text-body-sm text-on-surface-variant">
+        <p
+          className={`mb-4 line-clamp-2 text-body-sm ${
+            isDone ? "text-on-surface-variant/80" : "text-on-surface-variant"
+          }`}
+        >
           {task.description}
         </p>
       )}
 
-      <div
-        className={`flex items-center text-body-sm ${
-          overdue ? "text-red-600" : "text-on-surface-variant"
-        }`}
-      >
-        <span className="material-symbols-outlined ml-1 text-[18px]">
-          {overdue ? "warning" : "calendar_today"}
-        </span>
-        {formatTaskDate(task.dueDate)}
+      <div className="flex flex-col gap-2 text-body-sm">
+        <div
+          className={`flex items-center ${
+            overdue ? "text-red-600" : "text-on-surface-variant"
+          }`}
+        >
+          <span className="material-symbols-outlined ml-1 text-[18px]">
+            {overdue ? "warning" : "calendar_today"}
+          </span>
+          {formatTaskDate(task.dueDate)}
+        </div>
+
+        {completedLabel && (
+          <div className="inline-flex w-fit items-center rounded-lg bg-tertiary-fixed px-2 py-1 text-on-tertiary-fixed-variant">
+            <span className="material-symbols-outlined ml-1 text-[18px]">
+              task_alt
+            </span>
+            {completedLabel}
+          </div>
+        )}
       </div>
       {isEditModalOpen && (
         <EditTaskModal
