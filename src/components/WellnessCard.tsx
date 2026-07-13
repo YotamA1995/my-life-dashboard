@@ -109,7 +109,9 @@ export default function WellnessCard({ tasks }: WellnessCardProps) {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h3 className="text-h3 text-primary">מצב היום</h3>
-          <p className="text-sm text-slate-500">עומס תפעולי לפי המשימות שלך</p>
+          <p className="text-sm text-slate-500">
+            עומס תפעולי לפי המשימות שלך
+          </p>
         </div>
       </div>
 
@@ -132,7 +134,8 @@ export default function WellnessCard({ tasks }: WellnessCardProps) {
                 {item.label}
               </p>
               <p className="text-lg font-bold text-primary">
-                {item.value} <span className="text-xs font-normal">{item.unit}</span>
+                {item.value}{" "}
+                <span className="text-xs font-normal">{item.unit}</span>
               </p>
             </div>
           </div>
