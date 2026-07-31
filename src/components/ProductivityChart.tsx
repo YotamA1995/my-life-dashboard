@@ -17,8 +17,8 @@ export default function ProductivityChart({ tasks }: ProductivityChartProps) {
   );
 
   return (
-    <section className="col-span-12 rounded-xl border border-slate-200 bg-white/90 p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] lg:col-span-8">
-      <div className="mb-8 flex items-center justify-between gap-4">
+    <section className="col-span-12 rounded-xl border border-slate-200 bg-white/90 p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] sm:p-card-padding lg:col-span-8">
+      <div className="mb-6 flex items-center justify-between gap-3 sm:mb-8 sm:gap-4">
         <div>
           <h3 className="text-h3 text-primary">קצב פרודוקטיביות</h3>
           <p className="mt-1 text-sm text-slate-500">
@@ -32,12 +32,12 @@ export default function ProductivityChart({ tasks }: ProductivityChartProps) {
         </div>
       </div>
 
-      <div className="relative h-72 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 px-5 pt-6 pb-10">
+      <div className="relative h-64 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 px-2 pt-5 pb-8 sm:h-72 sm:px-5 sm:pt-6 sm:pb-10">
         <div className="absolute inset-x-5 top-1/4 border-t border-dashed border-slate-200" />
         <div className="absolute inset-x-5 top-1/2 border-t border-dashed border-slate-200" />
         <div className="absolute inset-x-5 top-3/4 border-t border-dashed border-slate-200" />
 
-        <div className="relative z-10 flex h-full items-end justify-between gap-4">
+        <div className="relative z-10 flex h-full items-end justify-between gap-1.5 sm:gap-4">
           {weeklyCompletionData.map((day) => {
             const heightPercentage = Math.max(
               day.completedCount === 0 ? 8 : 18,

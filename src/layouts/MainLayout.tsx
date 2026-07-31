@@ -1,14 +1,43 @@
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
 export default function MainLayout() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <div dir="rtl" className="min-h-screen bg-background text-on-surface">
-      <Sidebar />
-      <Topbar />
+      <Sidebar
+        isMobileOpen={isMobileMenuOpen}
+        onMobileClose={() => setIsMobileMenuOpen(false)}
+      />
+      <Topbar onMenuOpen={() => setIsMobileMenuOpen(true)} />
 
-      <div className="mr-64">
+      <div className="lg:mr-64">
         <Outlet />
       </div>
     </div>

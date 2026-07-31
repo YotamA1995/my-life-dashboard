@@ -30,7 +30,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
 }) => {
   const statusStyle = positive ? statusStyles.positive : statusStyles.attention;
   return (
-    <div className="flex min-h-[180px] flex-col justify-between rounded-xl border border-slate-200 bg-white/90 p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]">
+    <div className="flex min-h-[170px] flex-col justify-between rounded-xl border border-slate-200 bg-white/90 p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] sm:min-h-[180px] sm:p-card-padding">
       <div>
         <div className="mb-4 flex items-start justify-between gap-4">
           <span className="text-label-caps uppercase text-slate-400">
@@ -43,7 +43,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
           </span>
         </div>
 
-        <div className="flex items-baseline gap-2">
+        <div className="flex flex-wrap items-baseline gap-2">
           <span className="text-h2 text-primary">{value}</span>
 
           {change && (

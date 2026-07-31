@@ -65,10 +65,10 @@ export default function AddTaskModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-primary/40 p-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-primary/40 p-3 backdrop-blur-sm sm:p-6">
       <form
         onSubmit={handleSubmit}
-        className="max-h-[calc(100vh-48px)] w-full max-w-lg overflow-y-auto rounded-2xl border border-outline-variant bg-white p-card-padding shadow-[0px_20px_60px_rgba(0,0,0,0.18)]"
+        className="max-h-[calc(100dvh-24px)] w-full max-w-lg overflow-y-auto rounded-2xl border border-outline-variant bg-white p-5 shadow-[0px_20px_60px_rgba(0,0,0,0.18)] sm:max-h-[calc(100dvh-48px)] sm:p-card-padding"
       >
         <div className="mb-6 flex items-start justify-between">
           <div>
@@ -81,6 +81,7 @@ export default function AddTaskModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="סגור חלון"
             className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-primary"
           >
             <span className="material-symbols-outlined">close</span>

@@ -70,9 +70,9 @@ const transactions = [
 
 export default function FinancePage() {
   return (
-    <main className="pt-24 px-8 pb-12 max-w-[1440px] mx-auto min-h-screen bg-surface text-on-surface">
+    <main className="mx-auto min-h-screen max-w-[1440px] bg-surface px-4 pt-20 pb-8 text-on-surface sm:px-6 sm:pb-10 lg:px-8 lg:pt-24 lg:pb-12">
       {/* Summary Section */}
-      <section className="grid grid-cols-12 gap-gutter mb-margin">
+      <section className="mb-8 grid grid-cols-12 gap-4 lg:gap-gutter xl:mb-margin">
         {/* Total Savings */}
         <article className="col-span-12 lg:col-span-4 bg-white rounded-xl p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-slate-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]">
           <div className="flex justify-between items-start mb-6">
@@ -133,7 +133,7 @@ export default function FinancePage() {
       </section>
 
       {/* Charts & Insight */}
-      <section className="grid grid-cols-12 gap-gutter">
+      <section className="grid grid-cols-12 gap-4 lg:gap-gutter">
         {/* Spending Trends */}
         <article className="col-span-12 xl:col-span-7 bg-white rounded-xl p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-slate-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]">
           <div className="flex justify-between items-center mb-8">
@@ -231,9 +231,9 @@ export default function FinancePage() {
 
         {/* Transactions */}
         <article className="col-span-12 bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-slate-100 overflow-hidden">
-          <div className="p-card-padding flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col items-start justify-between gap-4 p-5 sm:p-card-padding md:flex-row md:items-center">
             <h3 className="text-h3 text-primary">עסקאות אחרונות</h3>
-            <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="flex w-full items-center gap-2 sm:gap-4 md:w-auto">
               <div className="relative flex items-center bg-surface-container-low rounded-lg px-4 py-2 border border-outline-variant w-full md:w-64">
                 <span className="material-symbols-outlined text-outline text-lg">search</span>
                 <input
@@ -242,13 +242,68 @@ export default function FinancePage() {
                   type="text"
                 />
               </div>
-              <button className="p-2 border border-outline-variant rounded-lg hover:bg-surface-container transition-colors">
+              <button type="button" aria-label="סינון עסקאות" className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-outline-variant transition-colors hover:bg-surface-container">
                 <span className="material-symbols-outlined">filter_list</span>
               </button>
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="divide-y divide-slate-100 md:hidden">
+            {transactions.map((transaction) => (
+              <article
+                key={`${transaction.title}-${transaction.date}-mobile`}
+                className="p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-100">
+                    <span className="material-symbols-outlined text-slate-600">
+                      {transaction.icon}
+                    </span>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-primary">
+                          {transaction.title}
+                        </p>
+                        <p className="text-xs text-on-surface-variant">
+                          {transaction.subtitle}
+                        </p>
+                      </div>
+                      <p
+                        className={`flex-shrink-0 text-sm font-bold ${
+                          transaction.positive
+                            ? "text-on-tertiary-container"
+                            : "text-primary"
+                        }`}
+                      >
+                        {transaction.amount}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-700">
+                        {transaction.category}
+                      </span>
+                      <span>{transaction.date}</span>
+                      <span
+                        className={`rounded-full px-2.5 py-1 font-semibold ${
+                          transaction.pending
+                            ? "bg-error-container text-on-error-container"
+                            : "bg-on-tertiary-container/10 text-on-tertiary-container"
+                        }`}
+                      >
+                        {transaction.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-right border-collapse">
               <thead>
                 <tr className="bg-surface-container-low border-y border-outline-variant/30">

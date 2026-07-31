@@ -54,8 +54,8 @@ export default function TasksInsights({ tasks }: TasksInsightsProps) {
   );
 
   return (
-    <section className="grid grid-cols-12 gap-gutter pb-margin">
-      <div className="col-span-12 rounded-xl border border-outline-variant/30 bg-white p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] lg:col-span-8">
+    <section className="grid grid-cols-12 gap-4 pb-8 lg:gap-gutter lg:pb-margin">
+      <div className="col-span-12 rounded-xl border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] sm:p-card-padding lg:col-span-8">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <h3 className="text-h3 font-h3 text-on-surface">
@@ -108,7 +108,7 @@ export default function TasksInsights({ tasks }: TasksInsightsProps) {
         </div>
       </div>
 
-      <div className="col-span-12 rounded-xl bg-primary p-card-padding text-on-primary shadow-[0px_4px_20px_rgba(0,0,0,0.05)] lg:col-span-4">
+      <div className="col-span-12 rounded-xl bg-primary p-5 text-on-primary shadow-[0px_4px_20px_rgba(0,0,0,0.05)] sm:p-card-padding lg:col-span-4">
         <h3 className="mb-2 text-h3 font-h3">עומס לפי תחום</h3>
         <p className="mb-6 text-body-sm text-on-primary/80">
           חלוקת המשימות הפתוחות לפי תחומי אחריות.

@@ -61,7 +61,7 @@ export default function TasksStats({ tasks }: TasksStatsProps) {
   ];
 
   return (
-    <section className="mb-margin grid grid-cols-1 gap-gutter md:grid-cols-4">
+    <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:mb-margin xl:grid-cols-4 xl:gap-gutter">
       {stats.map((stat) => (
         <div
           key={stat.label}

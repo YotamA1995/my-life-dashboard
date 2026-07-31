@@ -126,17 +126,17 @@ export default function TasksPage() {
   }
 
   return (
-    <main className="min-h-screen bg-surface px-8 pt-24 pb-12 text-on-surface">
+    <main className="min-h-screen bg-surface px-4 pt-20 pb-8 text-on-surface sm:px-6 sm:pb-10 lg:px-8 lg:pt-24 lg:pb-12">
       <div className="mx-auto w-full max-w-[1440px]">
         {/* Header */}
         <section className="mb-8 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <h2 className="text-h1 text-on-surface">מרכז ניהול משימות</h2>
+            <h2 className="text-2xl font-semibold text-on-surface sm:text-h1">מרכז ניהול משימות</h2>
             <p className="mt-2 text-sm text-on-surface-variant">
               נהל משימות, עקוב אחרי סטטוס, והעבר עבודה בין שלבים.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
             <TasksBackupActions
               tasks={tasks}
               onImport={replaceTasks}
@@ -145,7 +145,7 @@ export default function TasksPage() {
 
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:opacity-90"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:opacity-90 sm:w-auto"
             >
               <span className="material-symbols-outlined text-lg">add</span>
               הוסף משימה
@@ -193,7 +193,7 @@ export default function TasksPage() {
             </button>
           </section>
         ) : (
-          <section className="mb-8 flex gap-gutter overflow-x-auto pb-8">
+          <section className="mb-8 flex flex-col gap-6 pb-4 lg:flex-row lg:gap-gutter lg:overflow-x-auto lg:pb-8">
             {taskColumns.map((column) => {
               const columnTasks = filteredTasks.filter(
                 (task) => task.status === column.status,
@@ -231,7 +231,7 @@ export default function TasksPage() {
         {notice && (
           <div
             role="status"
-            className={`fixed bottom-6 left-6 z-[120] flex max-w-md items-center gap-4 rounded-xl px-5 py-4 text-sm font-semibold text-white shadow-2xl ${
+            className={`fixed right-4 bottom-4 left-4 z-[120] flex max-w-md items-center gap-3 rounded-xl px-4 py-4 text-sm font-semibold text-white shadow-2xl sm:right-auto sm:bottom-6 sm:left-6 sm:gap-4 sm:px-5 ${
               notice.tone === "error" ? "bg-error" : "bg-primary"
             }`}
           >

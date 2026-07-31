@@ -52,7 +52,7 @@ export default function KanbanColumn({
   const dropLabel = dropLabelByStatus[status];
 
   return (
-    <div className="flex w-80 flex-shrink-0 flex-col gap-4">
+    <div className="flex w-full flex-shrink-0 flex-col gap-4 lg:w-80">
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
           <h2 className="font-h3 text-h3 text-on-surface">{title}</h2>

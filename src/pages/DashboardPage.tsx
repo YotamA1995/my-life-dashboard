@@ -23,18 +23,18 @@ export default function DashboardPage() {
   const completedTodayTasks = tasks.filter(wasTaskCompletedToday).length;
 
   return (
-    <main className="min-h-screen bg-background px-8 pt-24 pb-12 text-on-surface">
+    <main className="min-h-screen bg-background px-4 pt-20 pb-8 text-on-surface sm:px-6 sm:pb-10 lg:px-8 lg:pt-24 lg:pb-12">
       <div className="mx-auto w-full max-w-[1440px]">
         {/* Greeting */}
         <div className="mb-8">
-          <h2 className="text-h1 text-primary">בוקר טוב, יותם 👋</h2>
+          <h2 className="text-2xl font-semibold text-primary sm:text-h1">בוקר טוב, יותם 👋</h2>
           <p className="text-slate-500">
             הנה תמונת המצב שלך להיום מתוך מודול המשימות
           </p>
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 gap-gutter md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-gutter xl:grid-cols-3">
           <SummaryCard
             title="משימות פעילות"
             value={activeTasks.toString()}
@@ -61,7 +61,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Bento Grid */}
-        <div className="mt-8 grid grid-cols-12 items-stretch gap-gutter">
+        <div className="mt-6 grid grid-cols-12 items-stretch gap-4 lg:mt-8 lg:gap-gutter">
           <ProductivityChart tasks={tasks} />
           <FocusSession tasks={tasks} />
           <NetworkActivity tasks={tasks} />

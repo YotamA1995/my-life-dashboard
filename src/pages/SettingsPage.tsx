@@ -67,16 +67,16 @@ function SmallToggle({ enabled }: { enabled: boolean }) {
 
 export default function SettingsPage() {
   return (
-    <main className="pt-24 px-8 pb-12 min-h-screen bg-surface text-on-surface">
+    <main className="min-h-screen bg-surface px-4 pt-20 pb-8 text-on-surface sm:px-6 sm:pb-10 lg:px-8 lg:pt-24 lg:pb-12">
       <div className="w-full max-w-[1440px] mx-auto">
         <div className="mb-8">
-          <h2 className="text-h1 text-primary">הגדרות והתאמה אישית</h2>
+          <h2 className="text-2xl font-semibold text-primary sm:text-h1">הגדרות והתאמה אישית</h2>
           <p className="mt-2 text-sm text-on-surface-variant">
             התאמה אישית של חוויית העבודה, התראות ומודולים פעילים.
           </p>
         </div>
 
-        <div className="grid grid-cols-12 gap-8">
+        <div className="grid grid-cols-12 gap-4 lg:gap-8">
           {/* Main settings */}
           <section className="col-span-12 lg:col-span-8 space-y-8">
             {/* Appearance */}
@@ -125,7 +125,7 @@ export default function SettingsPage() {
                     צבע דגש
                   </label>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <button className="h-10 w-10 rounded-full bg-secondary ring-2 ring-secondary ring-offset-2 transition-transform hover:scale-110" type="button" />
                     <button className="h-10 w-10 rounded-full bg-[#7C3AED] transition-transform hover:scale-110" type="button" />
                     <button className="h-10 w-10 rounded-full bg-[#10B981] transition-transform hover:scale-110" type="button" />
@@ -150,8 +150,8 @@ export default function SettingsPage() {
 
               <div className="divide-y divide-slate-100">
                 {notificationSettings.map((item) => (
-                  <div key={item.title} className="flex items-center justify-between p-card-padding">
-                    <div className="flex items-start gap-4">
+                  <div key={item.title} className="flex items-start justify-between gap-4 p-5 sm:p-card-padding">
+                    <div className="flex min-w-0 items-start gap-3 sm:gap-4">
                       <div className={`rounded-lg p-2 ${item.iconClassName}`}>
                         <span className="material-symbols-outlined">{item.icon}</span>
                       </div>
@@ -161,7 +161,9 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <Toggle enabled={item.enabled} />
+                    <div className="flex-shrink-0">
+                      <Toggle enabled={item.enabled} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -191,7 +193,7 @@ export default function SettingsPage() {
               </div>
             </article>
 
-            <article className="relative aspect-square cursor-pointer overflow-hidden rounded-xl bg-primary shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.12)]">
+            <article className="relative min-h-72 cursor-pointer overflow-hidden rounded-xl bg-primary shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.12)] sm:aspect-square">
               <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-primary-container" />
               <div className="absolute inset-0 flex flex-col justify-end p-8">
                 <span className="mb-2 text-label-caps text-tertiary-fixed">סטטוס שדרוג</span>
@@ -208,17 +210,17 @@ export default function SettingsPage() {
         </div>
 
         {/* Footer */}
-        <section className="mt-12 flex items-center justify-between rounded-xl border border-slate-200 bg-white p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+        <section className="mt-8 flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] sm:p-6 lg:mt-12 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 text-sm text-on-surface-variant">
             <span className="material-symbols-outlined text-sm">info</span>
             <span>סנכרון הגדרות אחרון: היום ב-09:42 בבוקר</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button className="rounded-lg px-6 py-2 font-semibold text-on-surface-variant transition-colors hover:bg-slate-100" type="button">
+          <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:items-center lg:w-auto lg:gap-4">
+            <button className="w-full rounded-lg px-6 py-2 font-semibold text-on-surface-variant transition-colors hover:bg-slate-100 sm:w-auto" type="button">
               בטל שינויים
             </button>
-            <button className="rounded-lg bg-secondary px-8 py-2 font-semibold text-white shadow-md shadow-secondary/20 transition-all hover:opacity-90" type="button">
+            <button className="w-full rounded-lg bg-secondary px-8 py-2 font-semibold text-white shadow-md shadow-secondary/20 transition-all hover:opacity-90 sm:w-auto" type="button">
               שמור שינויים
             </button>
           </div>

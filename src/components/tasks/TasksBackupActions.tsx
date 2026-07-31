@@ -74,11 +74,11 @@ export default function TasksBackupActions({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
       <button
         type="button"
         onClick={handleExport}
-        className="inline-flex items-center gap-2 rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container sm:w-auto"
       >
         <span className="material-symbols-outlined text-[18px]">download</span>
         ייצוא גיבוי
@@ -87,7 +87,7 @@ export default function TasksBackupActions({
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="inline-flex items-center gap-2 rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant bg-white px-4 py-3 text-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container sm:w-auto"
       >
         <span className="material-symbols-outlined text-[18px]">upload</span>
         ייבוא גיבוי

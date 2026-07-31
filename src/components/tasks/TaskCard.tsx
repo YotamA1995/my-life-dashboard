@@ -108,7 +108,7 @@ export default function TaskCard({
         event.dataTransfer.setData("text/plain", task.id);
         event.dataTransfer.effectAllowed = "move";
       }}
-      className={`group relative overflow-hidden rounded-xl border border-outline-variant/30 bg-white p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] ${
+      className={`group relative overflow-hidden rounded-xl border border-outline-variant/30 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] sm:p-card-padding ${
         task.status === "inProgress" ? "border-r-4 border-r-secondary" : ""
       } ${isDone ? "border-tertiary/30 bg-surface-container-low" : ""} ${
         isHighlighted ? "ring-2 ring-secondary ring-offset-2" : ""
@@ -135,10 +135,11 @@ export default function TaskCard({
           </span>
         </div>
 
-        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
           <button
             onClick={() => setIsEditModalOpen(true)}
-            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-primary"
+            aria-label={`ערוך את המשימה ${task.title}`}
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary sm:h-8 sm:w-8 sm:text-slate-400"
           >
             <span className="material-symbols-outlined text-[18px]">
               edit
@@ -148,7 +149,7 @@ export default function TaskCard({
           <button
             onClick={() => onDelete(task.id)}
             aria-label={`מחק את המשימה ${task.title}`}
-            className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 sm:h-8 sm:w-8 sm:text-slate-400"
           >
             <span className="material-symbols-outlined text-[18px]">
               delete

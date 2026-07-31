@@ -9,7 +9,7 @@ import {
   getMonthGrid,
   shiftMonth,
 } from "../utils/calendarUtils";
-import { getTodayDate, isOverdue } from "../utils/dateUtils";
+import { formatTaskDate, getTodayDate, isOverdue } from "../utils/dateUtils";
 
 const weekdayLabels = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
 
@@ -102,16 +102,20 @@ export default function SchedulePage() {
       firstTask.dueDate.localeCompare(secondTask.dueDate),
     )
     .slice(0, 5);
+  const agendaDays = calendarDays.filter(
+    (day) =>
+      day.isCurrentMonth && (tasksByDate.get(day.dateKey)?.length ?? 0) > 0,
+  );
 
   return (
-    <main className="min-h-screen bg-surface px-8 pt-24 pb-12 text-on-surface">
+    <main className="min-h-screen bg-surface px-4 pt-20 pb-8 text-on-surface sm:px-6 sm:pb-10 lg:px-8 lg:pt-24 lg:pb-12">
       <div className="mx-auto w-full max-w-[1440px]">
         <section className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-2 text-label-caps text-on-surface-variant">
               תכנון לפי משימות
             </div>
-            <h2 className="text-h1 text-on-surface">לוח זמנים</h2>
+            <h2 className="text-2xl font-semibold text-on-surface sm:text-h1">לוח זמנים</h2>
             <p className="mt-2 text-sm text-on-surface-variant">
               לחץ על יום כדי ליצור משימה, או על משימה קיימת כדי לערוך אותה.
             </p>
@@ -120,7 +124,7 @@ export default function SchedulePage() {
           <button
             type="button"
             onClick={() => setNewTaskDate(today)}
-            className="inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:opacity-90"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:opacity-90 sm:w-fit"
           >
             <span className="material-symbols-outlined text-lg">add</span>
             משימה חדשה להיום
@@ -130,7 +134,7 @@ export default function SchedulePage() {
         <section className="grid grid-cols-12 gap-6">
           <div className="col-span-12 overflow-hidden rounded-xl border border-outline-variant bg-white shadow-sm xl:col-span-9">
             <div className="flex flex-col gap-4 border-b border-outline-variant p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <h3 className="min-w-40 text-h3">
                   {formatMonthLabel(visibleMonth)}
                 </h3>
@@ -176,7 +180,79 @@ export default function SchedulePage() {
               </button>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="border-b border-outline-variant bg-surface-container-low p-4 md:hidden">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-on-surface sm:flex-row sm:items-center">
+                יצירת משימה בתאריך
+                <input
+                  type="date"
+                  value={newTaskDate ?? ""}
+                  onChange={(event) => {
+                    if (event.target.value) {
+                      setNewTaskDate(event.target.value);
+                    }
+                  }}
+                  className="h-11 rounded-xl border border-outline-variant bg-white px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-secondary"
+                />
+              </label>
+            </div>
+
+            <div className="divide-y divide-slate-100 md:hidden">
+              {agendaDays.length > 0 ? (
+                agendaDays.map((day) => {
+                  const dayTasks = tasksByDate.get(day.dateKey) ?? [];
+
+                  return (
+                    <section key={day.dateKey} className="p-4">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-on-surface">
+                            {formatTaskDate(day.dateKey)}
+                          </p>
+                          <p className="text-xs text-on-surface-variant">
+                            {dayTasks.length} משימות
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setNewTaskDate(day.dateKey)}
+                          aria-label={`הוסף משימה לתאריך ${day.dateKey}`}
+                          className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container text-primary"
+                        >
+                          <span className="material-symbols-outlined">add</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {dayTasks.map((task) => (
+                          <button
+                            key={task.id}
+                            type="button"
+                            onClick={() => setSelectedTask(task)}
+                            className={`block min-h-11 w-full rounded-xl border px-3 py-2.5 text-right text-sm font-semibold ${getTaskClasses(task)}`}
+                          >
+                            {task.title}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })
+              ) : (
+                <div className="p-8 text-center">
+                  <span className="material-symbols-outlined text-4xl text-on-surface-variant/60">
+                    event_available
+                  </span>
+                  <p className="mt-3 font-semibold text-on-surface">
+                    אין משימות בחודש הזה
+                  </p>
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    בחר תאריך למעלה כדי ליצור את המשימה הראשונה.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
               <div className="min-w-[840px]">
                 <div className="grid grid-cols-7 gap-px bg-outline-variant">
                   {weekdayLabels.map((dayLabel) => (
