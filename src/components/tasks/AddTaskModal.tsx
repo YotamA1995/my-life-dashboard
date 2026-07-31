@@ -2,22 +2,26 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useTasksStore } from "../../store/useTasksStore";
 import type { TaskCategory, TaskPriority, TaskStatus } from "../../store/useTasksStore";
-import { getTodayDate } from "../../utils/dateUtils";
+import { getTodayDate, normalizeDateKey } from "../../utils/dateUtils";
 
 type AddTaskModalProps = {
   onClose: () => void;
   onTaskCreated: (taskId: string) => void;
+  initialDueDate?: string;
 };
 
 export default function AddTaskModal({
   onClose,
   onTaskCreated,
+  initialDueDate,
 }: AddTaskModalProps) {
   const { addTask } = useTasksStore();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState(getTodayDate());
+  const [dueDate, setDueDate] = useState(
+    normalizeDateKey(initialDueDate ?? getTodayDate()),
+  );
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [category, setCategory] = useState<TaskCategory>("personal");
   const [status, setStatus] = useState<TaskStatus>("todo");
@@ -46,6 +50,8 @@ export default function AddTaskModal({
       return;
     }
 
+    onTaskCreated(newTaskId);
+
     setTimeout(() => {
       const element = document.getElementById(`task-${newTaskId}`);
 
@@ -54,8 +60,6 @@ export default function AddTaskModal({
           behavior: "smooth",
           block: "center",
         });
-
-        onTaskCreated(newTaskId);
       }
     }, 100);
   }
