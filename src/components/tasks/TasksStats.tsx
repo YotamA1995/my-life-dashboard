@@ -1,42 +1,12 @@
 import type { Task } from "../../store/useTasksStore";
+import { isCompletedToday, isOverdue } from "../../utils/dateUtils";
 
 type TasksStatsProps = {
   tasks: Task[];
 };
 
-function isCompletedToday(completedAt?: string) {
-  if (!completedAt) {
-    return false;
-  }
-
-  const completedDate = new Date(completedAt);
-
-  if (Number.isNaN(completedDate.getTime())) {
-    return false;
-  }
-
-  const today = new Date();
-
-  return completedDate.toDateString() === today.toDateString();
-}
-
 function isTaskOverdue(task: Task) {
-  if (task.status === "done") {
-    return false;
-  }
-
-  const dueDate = new Date(task.dueDate);
-
-  if (Number.isNaN(dueDate.getTime())) {
-    return false;
-  }
-
-  const today = new Date();
-
-  today.setHours(0, 0, 0, 0);
-  dueDate.setHours(0, 0, 0, 0);
-
-  return dueDate < today;
+  return task.status !== "done" && isOverdue(task.dueDate);
 }
 
 export default function TasksStats({ tasks }: TasksStatsProps) {

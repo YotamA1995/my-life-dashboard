@@ -7,10 +7,7 @@ import type {
   TaskStatus,
 } from "../../store/useTasksStore";
 import { Button, Input, Modal } from "../ui";
-
-function getTodayDate() {
-  return new Date().toISOString().split("T")[0];
-}
+import { getTodayDate } from "../../utils/dateUtils";
 
 type EditTaskModalProps = {
   task: Task;
@@ -31,9 +28,7 @@ export default function EditTaskModal({
 
   const [status, setStatus] = useState<TaskStatus>(task.status);
 
-  const [priority, setPriority] = useState<TaskPriority>(
-    task.priority === "completed" ? "medium" : task.priority,
-  );
+  const [priority, setPriority] = useState<TaskPriority>(task.priority);
 
   const [category, setCategory] = useState<TaskCategory>(task.category);
 
@@ -49,7 +44,7 @@ export default function EditTaskModal({
       description,
       dueDate: normalizedDueDate,
       status,
-      priority: status === "done" ? "completed" : priority,
+      priority,
       category,
     });
 

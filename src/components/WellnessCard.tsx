@@ -1,4 +1,5 @@
 import type { Task, TaskStatus } from "../store/useTasksStore";
+import { isOverdue } from "../utils/dateUtils";
 
 type WellnessCardProps = {
   tasks: Task[];
@@ -18,18 +19,7 @@ function isTaskOverdue(task: { dueDate: string; status: TaskStatus }) {
     return false;
   }
 
-  const dueDate = new Date(task.dueDate);
-
-  if (Number.isNaN(dueDate.getTime())) {
-    return false;
-  }
-
-  const today = new Date();
-
-  today.setHours(0, 0, 0, 0);
-  dueDate.setHours(0, 0, 0, 0);
-
-  return dueDate < today;
+  return isOverdue(task.dueDate);
 }
 
 function getTodayStatus(tasks: Task[]): DayStatus[] {

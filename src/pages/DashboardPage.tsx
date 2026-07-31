@@ -4,41 +4,15 @@ import FocusSession from "../components/FocusSession";
 import NetworkActivity from "../components/NetworkActivity";
 import WellnessCard from "../components/WellnessCard";
 import { useTasksStore } from "../store/useTasksStore";
-import type { Task, TaskStatus } from "../store/useTasksStore";
+import type { Task } from "../store/useTasksStore";
+import { isCompletedToday, isOverdue } from "../utils/dateUtils";
 
-function isTaskOverdue(task: { dueDate: string; status: TaskStatus }) {
-  if (task.status === "done") {
-    return false;
-  }
-
-  const dueDate = new Date(task.dueDate);
-
-  if (Number.isNaN(dueDate.getTime())) {
-    return false;
-  }
-
-  const today = new Date();
-
-  today.setHours(0, 0, 0, 0);
-  dueDate.setHours(0, 0, 0, 0);
-
-  return dueDate < today;
+function isTaskOverdue(task: Task) {
+  return task.status !== "done" && isOverdue(task.dueDate);
 }
 
-function isCompletedToday(task: Task) {
-  if (task.status !== "done" || !task.completedAt) {
-    return false;
-  }
-
-  const completedDate = new Date(task.completedAt);
-
-  if (Number.isNaN(completedDate.getTime())) {
-    return false;
-  }
-
-  const today = new Date();
-
-  return completedDate.toDateString() === today.toDateString();
+function wasTaskCompletedToday(task: Task) {
+  return task.status === "done" && isCompletedToday(task.completedAt);
 }
 
 export default function DashboardPage() {
@@ -46,7 +20,7 @@ export default function DashboardPage() {
 
   const activeTasks = tasks.filter((task) => task.status !== "done").length;
   const overdueTasks = tasks.filter(isTaskOverdue).length;
-  const completedTodayTasks = tasks.filter(isCompletedToday).length;
+  const completedTodayTasks = tasks.filter(wasTaskCompletedToday).length;
 
   return (
     <main className="min-h-screen bg-background px-8 pt-24 pb-12 text-on-surface">

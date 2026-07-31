@@ -4,35 +4,39 @@ import KanbanColumn from "../components/tasks/KanbanColumn";
 import TasksStats from "../components/tasks/TasksStats";
 import TasksInsights from "../components/tasks/TasksInsights";
 import TasksToolbar from "../components/tasks/TasksToolbar";
+import TasksBackupActions from "../components/tasks/TasksBackupActions";
 import { taskColumns } from "../components/tasks/tasksColumns";
 import { useTasksStore } from "../store/useTasksStore";
 import type {
+  Task,
   TaskCategory,
   TaskPriority,
   TaskStatus,
 } from "../store/useTasksStore";
+import { isOverdue } from "../utils/dateUtils";
 
 function isTaskOverdue(task: { dueDate: string; status: TaskStatus }) {
   if (task.status === "done") {
     return false;
   }
 
-  const dueDate = new Date(task.dueDate);
-
-  if (Number.isNaN(dueDate.getTime())) {
-    return false;
-  }
-
-  const today = new Date();
-
-  today.setHours(0, 0, 0, 0);
-  dueDate.setHours(0, 0, 0, 0);
-
-  return dueDate < today;
+  return isOverdue(task.dueDate);
 }
 
+type Notice = {
+  message: string;
+  tone: "success" | "error";
+  deletedTask?: Task;
+};
+
 export default function TasksPage() {
-  const { tasks, moveTask } = useTasksStore();
+  const {
+    tasks,
+    moveTask,
+    deleteTask,
+    restoreTask,
+    replaceTasks,
+  } = useTasksStore();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(
@@ -50,6 +54,7 @@ export default function TasksPage() {
     TaskCategory | "all"
   >("all");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
 
   const filteredTasks = tasks.filter((task) => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -97,24 +102,55 @@ export default function TasksPage() {
     setShowOverdueOnly(false);
   }
 
+  function handleDeleteTask(taskId: string) {
+    const deletedTask = deleteTask(taskId);
+
+    if (!deletedTask) {
+      return;
+    }
+
+    setNotice({
+      message: `המשימה “${deletedTask.title}” נמחקה`,
+      tone: "success",
+      deletedTask,
+    });
+  }
+
+  function handleUndoDelete() {
+    if (!notice?.deletedTask) {
+      return;
+    }
+
+    restoreTask(notice.deletedTask);
+    setNotice({ message: "המשימה שוחזרה", tone: "success" });
+  }
+
   return (
     <main className="min-h-screen bg-surface px-8 pt-24 pb-12 text-on-surface">
       <div className="mx-auto w-full max-w-[1440px]">
         {/* Header */}
-        <section className="mb-8 flex items-end justify-between">
+        <section className="mb-8 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <h2 className="text-h1 text-on-surface">מרכז ניהול משימות</h2>
             <p className="mt-2 text-sm text-on-surface-variant">
               נהל משימות, עקוב אחרי סטטוס, והעבר עבודה בין שלבים.
             </p>
           </div>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:opacity-90"
-          >
-            <span className="material-symbols-outlined text-lg">add</span>
-            הוסף משימה
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <TasksBackupActions
+              tasks={tasks}
+              onImport={replaceTasks}
+              onMessage={(message, tone) => setNotice({ message, tone })}
+            />
+
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:opacity-90"
+            >
+              <span className="material-symbols-outlined text-lg">add</span>
+              הוסף משימה
+            </button>
+          </div>
         </section>
 
         <TasksStats tasks={tasks} />
@@ -171,6 +207,7 @@ export default function TasksPage() {
                   tasks={columnTasks}
                   highlightedTaskId={highlightedTaskId}
                   onDropTask={moveTask}
+                  onDeleteTask={handleDeleteTask}
                 />
               );
             })}
@@ -189,6 +226,38 @@ export default function TasksPage() {
               }, 2500);
             }}
           />
+        )}
+
+        {notice && (
+          <div
+            role="status"
+            className={`fixed bottom-6 left-6 z-[120] flex max-w-md items-center gap-4 rounded-xl px-5 py-4 text-sm font-semibold text-white shadow-2xl ${
+              notice.tone === "error" ? "bg-error" : "bg-primary"
+            }`}
+          >
+            <span>{notice.message}</span>
+
+            {notice.deletedTask && (
+              <button
+                type="button"
+                onClick={handleUndoDelete}
+                className="rounded-lg bg-white/15 px-3 py-1.5 hover:bg-white/25"
+              >
+                ביטול מחיקה
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setNotice(null)}
+              aria-label="סגור הודעה"
+              className="rounded-full p-1 text-white/80 hover:bg-white/15 hover:text-white"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                close
+              </span>
+            </button>
+          </div>
         )}
       </div>
     </main>

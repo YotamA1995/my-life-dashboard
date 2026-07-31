@@ -47,63 +47,53 @@ function formatRelativeTime(dateValue: string) {
 }
 
 function getRecentActivities(tasks: Task[]): ActivityItem[] {
-  const completedActivities = tasks
-    .filter((task) => task.status === "done" && task.completedAt)
+  return [...tasks]
     .sort((firstTask, secondTask) => {
-      const firstDate = new Date(firstTask.completedAt ?? 0).getTime();
-      const secondDate = new Date(secondTask.completedAt ?? 0).getTime();
+      const firstDate = new Date(firstTask.updatedAt).getTime();
+      const secondDate = new Date(secondTask.updatedAt).getTime();
 
       return secondDate - firstDate;
     })
-    .map((task) => ({
-      id: `completed-${task.id}`,
-      title: task.title,
-      action: "נסגרה",
-      time: formatRelativeTime(task.completedAt ?? task.dueDate),
-      icon: "task_alt",
-    }));
+    .map((task) => {
+      if (task.status === "done") {
+        return {
+          id: task.id,
+          title: task.title,
+          action: "נסגרה",
+          time: formatRelativeTime(task.completedAt ?? task.updatedAt),
+          icon: "task_alt",
+        };
+      }
 
-  const inProgressActivities = tasks
-    .filter((task) => task.status === "inProgress")
-    .sort(
-      (firstTask, secondTask) =>
-        new Date(firstTask.dueDate).getTime() -
-        new Date(secondTask.dueDate).getTime(),
-    )
-    .map((task) => ({
-      id: `progress-${task.id}`,
-      title: task.title,
-      action: "נמצאת בעבודה",
-      time: `יעד ${new Intl.DateTimeFormat("he-IL", {
-        day: "2-digit",
-        month: "long",
-      }).format(new Date(task.dueDate))}`,
-      icon: "pending_actions",
-    }));
+      if (task.status === "inProgress") {
+        return {
+          id: task.id,
+          title: task.title,
+          action: "נמצאת בעבודה",
+          time: formatRelativeTime(task.updatedAt),
+          icon: "pending_actions",
+        };
+      }
 
-  const urgentActivities = tasks
-    .filter((task) => task.status !== "done" && task.priority === "high")
-    .sort(
-      (firstTask, secondTask) =>
-        new Date(firstTask.dueDate).getTime() -
-        new Date(secondTask.dueDate).getTime(),
-    )
-    .map((task) => ({
-      id: `urgent-${task.id}`,
-      title: task.title,
-      action: "דורשת טיפול דחוף",
-      time: `יעד ${new Intl.DateTimeFormat("he-IL", {
-        day: "2-digit",
-        month: "long",
-      }).format(new Date(task.dueDate))}`,
-      icon: "priority_high",
-    }));
+      if (task.priority === "high") {
+        return {
+          id: task.id,
+          title: task.title,
+          action: "דורשת טיפול דחוף",
+          time: formatRelativeTime(task.updatedAt),
+          icon: "priority_high",
+        };
+      }
 
-  return [
-    ...completedActivities,
-    ...inProgressActivities,
-    ...urgentActivities,
-  ].slice(0, 4);
+      return {
+        id: task.id,
+        title: task.title,
+        action: "עודכנה",
+        time: formatRelativeTime(task.updatedAt),
+        icon: "edit_note",
+      };
+    })
+    .slice(0, 4);
 }
 
 export default function NetworkActivity({ tasks }: NetworkActivityProps) {

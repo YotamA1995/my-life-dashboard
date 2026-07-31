@@ -1,9 +1,10 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { normalizeDateKey } from "../utils/dateUtils";
 
 export type TaskStatus = "todo" | "inProgress" | "done";
 
-export type TaskPriority = "low" | "medium" | "high" | "completed";
+export type TaskPriority = "low" | "medium" | "high";
 
 export type TaskCategory = "work" | "home" | "project" | "personal" | "security";
 
@@ -15,8 +16,12 @@ export type Task = {
   status: TaskStatus;
   priority: TaskPriority;
   category: TaskCategory;
+  createdAt: string;
+  updatedAt: string;
   completedAt?: string;
 };
+
+type StoredTask = Partial<Task> & Pick<Task, "id" | "title">;
 
 type TasksStore = {
   tasks: Task[];
@@ -34,13 +39,19 @@ type TasksStore = {
 
   updateTask: (
     taskId: string,
-    updates: Partial<Omit<Task, "id">>,
+    updates: Partial<
+      Omit<Task, "id" | "createdAt" | "updatedAt" | "completedAt">
+    >,
   ) => void;
 
-  deleteTask: (taskId: string) => void;
+  deleteTask: (taskId: string) => Task | undefined;
+
+  restoreTask: (task: Task) => void;
+
+  replaceTasks: (tasks: unknown) => number | undefined;
 };
 
-const initialTasks: Task[] = [
+const initialTasks: StoredTask[] = [
   {
     id: "task-1",
     title: "בדיקת לחץ הידרנטים בגג גימנסיה",
@@ -106,10 +117,6 @@ const initialTasks: Task[] = [
   },
 ];
 
-function getTodayDate() {
-  return new Date().toISOString().split("T")[0];
-}
-
 function getCurrentTimestamp() {
   return new Date().toISOString();
 }
@@ -128,12 +135,7 @@ function normalizeTaskStatus(status: unknown): TaskStatus {
 
 function normalizeTaskPriority(
   priority: unknown,
-  status: TaskStatus,
 ): TaskPriority {
-  if (status === "done") {
-    return "completed";
-  }
-
   if (priority === "low" || priority === "medium" || priority === "high") {
     return priority;
   }
@@ -163,20 +165,33 @@ function normalizeTaskDescription(description: unknown) {
   return description.trim();
 }
 
+function normalizeTimestamp(timestamp: unknown, fallback: string) {
+  if (typeof timestamp !== "string") {
+    return fallback;
+  }
 
-function normalizeCompletedAt(completedAt: unknown, status: TaskStatus) {
+  const parsedDate = new Date(timestamp);
+
+  return Number.isNaN(parsedDate.getTime()) ? fallback : timestamp;
+}
+
+function normalizeCompletedAt(
+  completedAt: unknown,
+  status: TaskStatus,
+  fallback: string,
+) {
   if (status !== "done") {
     return undefined;
   }
 
   if (typeof completedAt !== "string") {
-    return getCurrentTimestamp();
+    return fallback;
   }
 
   const parsedDate = new Date(completedAt);
 
   if (Number.isNaN(parsedDate.getTime())) {
-    return getCurrentTimestamp();
+    return fallback;
   }
 
   return completedAt;
@@ -185,59 +200,59 @@ function normalizeCompletedAt(completedAt: unknown, status: TaskStatus) {
 function getTaskCompletionFields(
   task: Task,
   nextStatus: TaskStatus,
-  nextPriority?: TaskPriority,
+  timestamp: string,
 ) {
   const isMovingToDone = nextStatus === "done";
   const wasAlreadyDone = task.status === "done";
 
   return {
     status: nextStatus,
-    priority: normalizeTaskPriority(nextPriority ?? task.priority, nextStatus),
     completedAt: isMovingToDone
       ? wasAlreadyDone
-        ? task.completedAt ?? getCurrentTimestamp()
-        : getCurrentTimestamp()
+        ? task.completedAt ?? timestamp
+        : timestamp
       : undefined,
   };
 }
 
-function normalizeTask(task: Partial<Task> & Pick<Task, "id" | "title">): Task {
+export function normalizeTask(task: StoredTask): Task {
   const status = normalizeTaskStatus(task.status);
+  const fallbackTimestamp = getCurrentTimestamp();
+  const createdAt = normalizeTimestamp(task.createdAt, fallbackTimestamp);
+  const updatedAt = normalizeTimestamp(task.updatedAt, createdAt);
 
   return {
-    ...task,
+    id: task.id,
+    title: task.title.trim(),
     description: normalizeTaskDescription(task.description),
-    dueDate: normalizeTaskDueDate(task.dueDate),
+    dueDate: normalizeDateKey(task.dueDate),
     status,
-    priority: normalizeTaskPriority(task.priority, status),
+    priority: normalizeTaskPriority(task.priority),
     category: normalizeTaskCategory(task.category),
-    completedAt: normalizeCompletedAt(task.completedAt, status),
+    createdAt,
+    updatedAt,
+    completedAt: normalizeCompletedAt(task.completedAt, status, updatedAt),
   };
 }
 
-function normalizeTaskDueDate(dueDate?: string) {
-  if (!dueDate || dueDate === "היום") {
-    return getTodayDate();
+function isStoredTask(value: unknown): value is StoredTask {
+  if (!value || typeof value !== "object") {
+    return false;
   }
 
-  const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+  const task = value as { id?: unknown; title?: unknown };
 
-  if (isoDatePattern.test(dueDate)) {
-    return dueDate;
-  }
-
-  const parsedDate = new Date(dueDate);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return getTodayDate();
-  }
-
-  return parsedDate.toISOString().split("T")[0];
+  return (
+    typeof task.id === "string" &&
+    task.id.trim().length > 0 &&
+    typeof task.title === "string" &&
+    task.title.trim().length > 0
+  );
 }
 
 export const useTasksStore = create<TasksStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       tasks: initialTasks.map(normalizeTask),
 
       addTask(
@@ -255,16 +270,23 @@ export const useTasksStore = create<TasksStore>()(
         }
 
         const normalizedStatus = normalizeTaskStatus(status);
+        const timestamp = getCurrentTimestamp();
 
         const newTask: Task = {
           id: createTaskId(),
           title: cleanTitle,
           description: normalizeTaskDescription(description),
-          dueDate: normalizeTaskDueDate(dueDate),
+          dueDate: normalizeDateKey(dueDate),
           status: normalizedStatus,
-          priority: normalizeTaskPriority(priority, normalizedStatus),
+          priority: normalizeTaskPriority(priority),
           category: normalizeTaskCategory(category),
-          completedAt: normalizeCompletedAt(undefined, normalizedStatus),
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          completedAt: normalizeCompletedAt(
+            undefined,
+            normalizedStatus,
+            timestamp,
+          ),
         };
 
         set((state) => ({
@@ -276,6 +298,7 @@ export const useTasksStore = create<TasksStore>()(
 
       moveTask(taskId, status) {
         const normalizedStatus = normalizeTaskStatus(status);
+        const timestamp = getCurrentTimestamp();
 
         set((state) => ({
           tasks: state.tasks.map((task) => {
@@ -285,13 +308,16 @@ export const useTasksStore = create<TasksStore>()(
 
             return {
               ...task,
-              ...getTaskCompletionFields(task, normalizedStatus),
+              ...getTaskCompletionFields(task, normalizedStatus, timestamp),
+              updatedAt: timestamp,
             };
           }),
         }));
       },
 
       updateTask(taskId, updates) {
+        const timestamp = getCurrentTimestamp();
+
         set((state) => ({
           tasks: state.tasks.map((task) => {
             if (task.id !== taskId) {
@@ -305,30 +331,73 @@ export const useTasksStore = create<TasksStore>()(
             return {
               ...task,
               ...updates,
+              title: updates.title?.trim() || task.title,
               description: normalizeTaskDescription(
                 updates.description ?? task.description,
               ),
-              dueDate: normalizeTaskDueDate(updates.dueDate ?? task.dueDate),
+              dueDate: normalizeDateKey(updates.dueDate ?? task.dueDate),
+              priority: normalizeTaskPriority(
+                updates.priority ?? task.priority,
+              ),
               category: normalizeTaskCategory(updates.category ?? task.category),
               ...getTaskCompletionFields(
                 task,
                 nextStatus,
-                updates.priority ?? task.priority,
+                timestamp,
               ),
+              updatedAt: timestamp,
             };
           }),
         }));
       },
 
       deleteTask(taskId) {
+        const deletedTask = get().tasks.find((task) => task.id === taskId);
+
+        if (!deletedTask) {
+          return;
+        }
+
         set((state) => ({
           tasks: state.tasks.filter((task) => task.id !== taskId),
         }));
+
+        return deletedTask;
+      },
+
+      restoreTask(task) {
+        const restoredTask = normalizeTask(task);
+
+        set((state) => ({
+          tasks: state.tasks.some((item) => item.id === restoredTask.id)
+            ? state.tasks
+            : [...state.tasks, restoredTask],
+        }));
+      },
+
+      replaceTasks(tasks) {
+        if (!Array.isArray(tasks) || !tasks.every(isStoredTask)) {
+          return;
+        }
+
+        const normalizedTasks = Array.from(
+          new Map(
+            tasks.map((task) => {
+              const normalizedTask = normalizeTask(task);
+
+              return [normalizedTask.id, normalizedTask];
+            }),
+          ).values(),
+        );
+
+        set({ tasks: normalizedTasks });
+
+        return normalizedTasks.length;
       },
     }),
     {
       name: "tasks-storage",
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         tasks: state.tasks,
@@ -340,10 +409,10 @@ export const useTasksStore = create<TasksStore>()(
           };
         }
 
-        const state = persistedState as { tasks?: Array<Partial<Task> & Pick<Task, "id" | "title">> };
+        const state = persistedState as { tasks?: unknown };
 
         return {
-          tasks: Array.isArray(state.tasks)
+          tasks: Array.isArray(state.tasks) && state.tasks.every(isStoredTask)
             ? state.tasks.map(normalizeTask)
             : initialTasks.map(normalizeTask),
         };

@@ -9,6 +9,7 @@ type KanbanColumnProps = {
   tasks: Task[];
   highlightedTaskId: string | null;
   onDropTask: (taskId: string, newStatus: TaskStatus) => void;
+  onDeleteTask: (taskId: string) => void;
 };
 
 const emptyStateByStatus: Record<
@@ -44,6 +45,7 @@ export default function KanbanColumn({
   tasks,
   highlightedTaskId,
   onDropTask,
+  onDeleteTask,
 }: KanbanColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const emptyState = emptyStateByStatus[status];
@@ -121,6 +123,7 @@ export default function KanbanColumn({
               key={task.id}
               task={task}
               isHighlighted={highlightedTaskId === task.id}
+              onDelete={onDeleteTask}
             />
           ))
         )}

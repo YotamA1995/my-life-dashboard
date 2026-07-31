@@ -2,10 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useTasksStore } from "../../store/useTasksStore";
 import type { TaskCategory, TaskPriority, TaskStatus } from "../../store/useTasksStore";
-
-function getTodayDate() {
-  return new Date().toISOString().split("T")[0];
-}
+import { getTodayDate } from "../../utils/dateUtils";
 
 type AddTaskModalProps = {
   onClose: () => void;

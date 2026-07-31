@@ -1,12 +1,18 @@
 import { useState } from "react";
 import EditTaskModal from "./EditTaskModal";
-import { useTasksStore } from "../../store/useTasksStore";
 import type { Task } from "../../store/useTasksStore";
-import { formatTaskDate, isOverdue } from "../../utils/dateUtils";
+import {
+  APP_TIME_ZONE,
+  formatTaskDate,
+  getDateKey,
+  isOverdue,
+  shiftDateKey,
+} from "../../utils/dateUtils";
 
 type TaskCardProps = {
   task: Task;
   isHighlighted?: boolean;
+  onDelete: (taskId: string) => void;
 };
 
 const priorityMap = {
@@ -21,10 +27,6 @@ const priorityMap = {
   high: {
     label: "גבוה",
     classes: "bg-red-50 text-red-700",
-  },
-  completed: {
-    label: "הושלם",
-    classes: "bg-tertiary-fixed text-on-tertiary-fixed-variant",
   },
 };
 
@@ -68,19 +70,18 @@ function formatCompletedAt(completedAt?: string) {
   }
 
   const today = new Date();
-  const yesterday = new Date();
+  const todayDateKey = getDateKey(today);
 
-  yesterday.setDate(today.getDate() - 1);
-
-  if (completedDate.toDateString() === today.toDateString()) {
+  if (getDateKey(completedDate) === todayDateKey) {
     return "הושלם היום";
   }
 
-  if (completedDate.toDateString() === yesterday.toDateString()) {
+  if (getDateKey(completedDate) === shiftDateKey(todayDateKey, -1)) {
     return "הושלם אתמול";
   }
 
   return `הושלם ב-${new Intl.DateTimeFormat("he-IL", {
+    timeZone: APP_TIME_ZONE,
     day: "2-digit",
     month: "long",
   }).format(completedDate)}`;
@@ -89,8 +90,8 @@ function formatCompletedAt(completedAt?: string) {
 export default function TaskCard({
   task,
   isHighlighted,
+  onDelete,
 }: TaskCardProps) {
-  const { deleteTask } = useTasksStore();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const priority = priorityMap[task.priority] ?? priorityMap.medium;
@@ -145,7 +146,8 @@ export default function TaskCard({
           </button>
 
           <button
-            onClick={() => deleteTask(task.id)}
+            onClick={() => onDelete(task.id)}
+            aria-label={`מחק את המשימה ${task.title}`}
             className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
           >
             <span className="material-symbols-outlined text-[18px]">

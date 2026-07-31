@@ -1,58 +1,9 @@
 import type { Task } from "../store/useTasksStore";
+import { getWeeklyCompletionData } from "../utils/taskAnalytics";
 
 type ProductivityChartProps = {
   tasks: Task[];
 };
-
-type WeeklyCompletionDay = {
-  dateKey: string;
-  label: string;
-  completedCount: number;
-};
-
-const weekdayLabels = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
-
-function getStartOfDay(date: Date) {
-  const startOfDay = new Date(date);
-
-  startOfDay.setHours(0, 0, 0, 0);
-
-  return startOfDay;
-}
-
-function getDateKey(date: Date) {
-  return date.toISOString().split("T")[0];
-}
-
-function getWeeklyCompletionData(tasks: Task[]): WeeklyCompletionDay[] {
-  const today = getStartOfDay(new Date());
-
-  return Array.from({ length: 7 }, (_, index) => {
-    const day = new Date(today);
-
-    day.setDate(today.getDate() - (6 - index));
-
-    const completedCount = tasks.filter((task) => {
-      if (task.status !== "done" || !task.completedAt) {
-        return false;
-      }
-
-      const completedDate = new Date(task.completedAt);
-
-      if (Number.isNaN(completedDate.getTime())) {
-        return false;
-      }
-
-      return getStartOfDay(completedDate).getTime() === day.getTime();
-    }).length;
-
-    return {
-      dateKey: getDateKey(day),
-      label: weekdayLabels[day.getDay()],
-      completedCount,
-    };
-  });
-}
 
 export default function ProductivityChart({ tasks }: ProductivityChartProps) {
   const weeklyCompletionData = getWeeklyCompletionData(tasks);
