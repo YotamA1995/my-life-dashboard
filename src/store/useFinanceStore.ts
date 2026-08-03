@@ -28,6 +28,11 @@ export type TransactionInput = Omit<
   "id" | "createdAt" | "updatedAt"
 >;
 
+export type FinanceBackupData = {
+  transactions: FinanceTransaction[];
+  budgets: Budget[];
+};
+
 type FinanceStore = {
   transactions: FinanceTransaction[];
   budgets: Budget[];
@@ -37,8 +42,12 @@ type FinanceStore = {
     input: TransactionInput,
   ) => void;
   deleteTransaction: (transactionId: string) => FinanceTransaction | undefined;
+  restoreTransaction: (transaction: FinanceTransaction) => void;
   setBudget: (category: string, amount: number) => void;
   deleteBudget: (category: string) => void;
+  replaceFinanceData: (data: unknown) =>
+    | { transactionCount: number; budgetCount: number }
+    | undefined;
 };
 
 function createTransactionId() {
@@ -51,6 +60,14 @@ function normalizeText(value: string) {
 
 function normalizeAmount(value: number) {
   return Number.isFinite(value) ? Math.max(0, Math.round(value * 100) / 100) : 0;
+}
+
+function normalizeTimestamp(value: unknown, fallback: string) {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  return Number.isNaN(new Date(value).getTime()) ? fallback : value;
 }
 
 function normalizeInput(input: TransactionInput): TransactionInput | undefined {
@@ -71,6 +88,122 @@ function normalizeInput(input: TransactionInput): TransactionInput | undefined {
     date: normalizeDateKey(input.date),
     note: normalizeText(input.note),
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
+function isValidDateKey(value: unknown) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsedDate = new Date(Date.UTC(year, month - 1, day, 12));
+
+  return (
+    parsedDate.getUTCFullYear() === year &&
+    parsedDate.getUTCMonth() === month - 1 &&
+    parsedDate.getUTCDate() === day
+  );
+}
+
+function isStoredTransaction(value: unknown) {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    value.id.trim().length > 0 &&
+    typeof value.title === "string" &&
+    value.title.trim().length > 0 &&
+    typeof value.category === "string" &&
+    value.category.trim().length > 0 &&
+    typeof value.amount === "number" &&
+    Number.isFinite(value.amount) &&
+    value.amount > 0 &&
+    (value.type === "income" || value.type === "expense") &&
+    (value.status === "completed" || value.status === "pending") &&
+    isValidDateKey(value.date) &&
+    (value.note === undefined || typeof value.note === "string") &&
+    (value.createdAt === undefined || typeof value.createdAt === "string") &&
+    (value.updatedAt === undefined || typeof value.updatedAt === "string")
+  );
+}
+
+function normalizeStoredTransaction(value: Record<string, unknown>) {
+  const input = normalizeInput({
+    title: value.title as string,
+    category: value.category as string,
+    amount: value.amount as number,
+    type: value.type as TransactionType,
+    status: value.status as TransactionStatus,
+    date: value.date as string,
+    note: typeof value.note === "string" ? value.note : "",
+  });
+
+  if (!input) {
+    return undefined;
+  }
+
+  const fallbackTimestamp = new Date().toISOString();
+  const createdAt = normalizeTimestamp(value.createdAt, fallbackTimestamp);
+
+  return {
+    ...input,
+    id: (value.id as string).trim(),
+    createdAt,
+    updatedAt: normalizeTimestamp(value.updatedAt, createdAt),
+  } satisfies FinanceTransaction;
+}
+
+function isStoredBudget(value: unknown) {
+  return (
+    isRecord(value) &&
+    typeof value.category === "string" &&
+    value.category.trim().length > 0 &&
+    typeof value.amount === "number" &&
+    Number.isFinite(value.amount) &&
+    value.amount > 0
+  );
+}
+
+export function normalizeFinanceData(data: unknown): FinanceBackupData | undefined {
+  if (
+    !isRecord(data) ||
+    !Array.isArray(data.transactions) ||
+    !Array.isArray(data.budgets) ||
+    !data.transactions.every(isStoredTransaction) ||
+    !data.budgets.every(isStoredBudget)
+  ) {
+    return undefined;
+  }
+
+  const transactions = Array.from(
+    new Map(
+      data.transactions.map((value) => {
+        const transaction = normalizeStoredTransaction(value);
+
+        return [transaction!.id, transaction!];
+      }),
+    ).values(),
+  );
+  const budgets = Array.from(
+    new Map(
+      data.budgets.map((value) => {
+        const category = value.category.trim();
+
+        return [
+          category,
+          { category, amount: normalizeAmount(value.amount) } satisfies Budget,
+        ];
+      }),
+    ).values(),
+  );
+
+  return { transactions, budgets };
 }
 
 export const useFinanceStore = create<FinanceStore>()(
@@ -137,6 +270,26 @@ export const useFinanceStore = create<FinanceStore>()(
         return transaction;
       },
 
+      restoreTransaction(transaction) {
+        const normalizedData = normalizeFinanceData({
+          transactions: [transaction],
+          budgets: [],
+        });
+        const restoredTransaction = normalizedData?.transactions[0];
+
+        if (!restoredTransaction) {
+          return;
+        }
+
+        set((state) => ({
+          transactions: state.transactions.some(
+            (item) => item.id === restoredTransaction.id,
+          )
+            ? state.transactions
+            : [...state.transactions, restoredTransaction],
+        }));
+      },
+
       setBudget(category, amount) {
         const normalizedCategory = normalizeText(category);
         const normalizedBudget = normalizeAmount(amount);
@@ -163,14 +316,41 @@ export const useFinanceStore = create<FinanceStore>()(
           budgets: state.budgets.filter((budget) => budget.category !== category),
         }));
       },
+
+      replaceFinanceData(data) {
+        const normalizedData = normalizeFinanceData(data);
+
+        if (!normalizedData) {
+          return undefined;
+        }
+
+        set(normalizedData);
+
+        return {
+          transactionCount: normalizedData.transactions.length,
+          budgetCount: normalizedData.budgets.length,
+        };
+      },
     }),
     {
       name: "finance-storage",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         transactions: state.transactions,
         budgets: state.budgets,
+      }),
+      migrate: (persistedState) =>
+        normalizeFinanceData(persistedState) ?? {
+          transactions: [],
+          budgets: [],
+        },
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...(normalizeFinanceData(persistedState) ?? {
+          transactions: [],
+          budgets: [],
+        }),
       }),
     },
   ),

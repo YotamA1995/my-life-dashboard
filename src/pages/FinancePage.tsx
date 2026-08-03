@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Input, Modal } from "../components/ui";
+import FinanceBackupActions from "../components/finance/FinanceBackupActions";
 import {
   useFinanceStore,
   type FinanceTransaction,
@@ -267,8 +268,14 @@ function BudgetForm({ initialCategory = "", initialAmount, onClose }: BudgetForm
 }
 
 export default function FinancePage() {
-  const { transactions, budgets, deleteTransaction, deleteBudget } =
-    useFinanceStore();
+  const {
+    transactions,
+    budgets,
+    deleteTransaction,
+    restoreTransaction,
+    deleteBudget,
+    replaceFinanceData,
+  } = useFinanceStore();
   const [selectedMonth, setSelectedMonth] = useState(
     getTodayDate().slice(0, 7),
   );
@@ -281,6 +288,21 @@ export default function FinancePage() {
     category?: string;
     amount?: number;
   } | null>(null);
+  const [notice, setNotice] = useState<{
+    message: string;
+    tone: "success" | "error";
+    deletedTransaction?: FinanceTransaction;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!notice) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setNotice(null), 8000);
+
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
 
   const monthTransactions = useMemo(
     () => transactions.filter((transaction) => transaction.date.startsWith(selectedMonth)),
@@ -326,8 +348,25 @@ export default function FinancePage() {
 
   function handleDeleteTransaction(transaction: FinanceTransaction) {
     if (window.confirm(`למחוק את העסקה „${transaction.title}”?`)) {
-      deleteTransaction(transaction.id);
+      const deletedTransaction = deleteTransaction(transaction.id);
+
+      if (deletedTransaction) {
+        setNotice({
+          message: `העסקה „${transaction.title}” נמחקה`,
+          tone: "success",
+          deletedTransaction,
+        });
+      }
     }
+  }
+
+  function handleUndoDelete() {
+    if (!notice?.deletedTransaction) {
+      return;
+    }
+
+    restoreTransaction(notice.deletedTransaction);
+    setNotice({ message: "העסקה שוחזרה", tone: "success" });
   }
 
   function handleDeleteBudget(category: string) {
@@ -345,20 +384,62 @@ export default function FinancePage() {
             {getMonthLabel(selectedMonth)}
           </h2>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(event) => setSelectedMonth(event.target.value)}
-            aria-label="בחירת חודש"
-            className="h-11 rounded-xl border border-outline-variant bg-white px-4 outline-none focus:border-primary"
-          />
-          <Button onClick={() => setIsTransactionModalOpen(true)}>
-            <span className="material-symbols-outlined text-lg">add</span>
-            עסקה חדשה
-          </Button>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <FinanceBackupActions
+              transactions={transactions}
+              budgets={budgets}
+              onImport={replaceFinanceData}
+              onMessage={(message, tone) => setNotice({ message, tone })}
+            />
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(event) => setSelectedMonth(event.target.value)}
+              aria-label="בחירת חודש"
+              className="h-11 rounded-xl border border-outline-variant bg-white px-4 outline-none focus:border-primary"
+            />
+            <Button onClick={() => setIsTransactionModalOpen(true)}>
+              <span className="material-symbols-outlined text-lg">add</span>
+              עסקה חדשה
+            </Button>
+          </div>
         </div>
       </section>
+
+      {notice ? (
+        <div
+          className={`mb-6 flex flex-col gap-3 rounded-xl border px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between ${
+            notice.tone === "error"
+              ? "border-error/30 bg-error-container text-on-error-container"
+              : "border-on-tertiary-container/20 bg-on-tertiary-container/10 text-on-tertiary-container"
+          }`}
+          role="status"
+        >
+          <span>{notice.message}</span>
+          <div className="flex items-center gap-2">
+            {notice.deletedTransaction ? (
+              <button
+                type="button"
+                onClick={handleUndoDelete}
+                className="rounded-lg px-3 py-1.5 font-semibold hover:bg-white/50"
+              >
+                ביטול מחיקה
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setNotice(null)}
+              aria-label="סגירת הודעה"
+              className="rounded-lg p-1.5 hover:bg-white/50"
+            >
+              <span className="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[

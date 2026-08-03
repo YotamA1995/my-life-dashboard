@@ -79,6 +79,11 @@ describe("useFinanceStore", () => {
     const deleted = storeModule.useFinanceStore.getState().deleteTransaction(id!);
     expect(deleted?.id).toBe(id);
     expect(storeModule.useFinanceStore.getState().transactions).toHaveLength(0);
+
+    storeModule.useFinanceStore.getState().restoreTransaction(deleted!);
+    expect(storeModule.useFinanceStore.getState().transactions).toEqual([
+      deleted,
+    ]);
   });
 
   it("rejects transactions without a valid title, category or amount", () => {
@@ -109,5 +114,94 @@ describe("useFinanceStore", () => {
 
     storeModule.useFinanceStore.getState().deleteBudget("מזון");
     expect(storeModule.useFinanceStore.getState().budgets).toHaveLength(0);
+  });
+
+  it("imports a valid backup and normalizes duplicate records", () => {
+    const timestamp = "2026-08-03T08:00:00.000Z";
+    const result = storeModule.useFinanceStore.getState().replaceFinanceData({
+      transactions: [
+        {
+          id: "transaction-1",
+          title: "משכורת",
+          category: "הכנסה",
+          amount: 15000,
+          type: "income",
+          status: "completed",
+          date: "2026-08-01",
+          note: "",
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        },
+        {
+          id: "transaction-1",
+          title: "משכורת מעודכנת",
+          category: "הכנסה",
+          amount: 15500,
+          type: "income",
+          status: "completed",
+          date: "2026-08-01",
+          note: "",
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        },
+      ],
+      budgets: [
+        { category: "מזון", amount: 600 },
+        { category: "מזון", amount: 750 },
+      ],
+    });
+
+    expect(result).toEqual({ transactionCount: 1, budgetCount: 1 });
+    expect(storeModule.useFinanceStore.getState().transactions[0]).toMatchObject({
+      title: "משכורת מעודכנת",
+      amount: 15500,
+    });
+    expect(storeModule.useFinanceStore.getState().budgets).toEqual([
+      { category: "מזון", amount: 750 },
+    ]);
+  });
+
+  it("rejects a malformed backup without replacing current data", () => {
+    storeModule.useFinanceStore.getState().setBudget("מזון", 600);
+
+    const result = storeModule.useFinanceStore.getState().replaceFinanceData({
+      transactions: [
+        {
+          id: "invalid-date",
+          title: "עסקה פגומה",
+          category: "אחר",
+          amount: 100,
+          type: "expense",
+          status: "completed",
+          date: "2026-99-99",
+        },
+      ],
+      budgets: [],
+    });
+
+    expect(result).toBeUndefined();
+    expect(storeModule.useFinanceStore.getState().budgets).toEqual([
+      { category: "מזון", amount: 600 },
+    ]);
+  });
+
+  it("migrates valid older records that do not have timestamps", () => {
+    const normalized = storeModule.normalizeFinanceData({
+      transactions: [
+        {
+          id: "old-transaction",
+          title: "עסקה ישנה",
+          category: "אחר",
+          amount: 100,
+          type: "expense",
+          status: "completed",
+          date: "2026-07-31",
+        },
+      ],
+      budgets: [{ category: "אחר", amount: 500 }],
+    });
+
+    expect(normalized?.transactions[0].createdAt).toBeTypeOf("string");
+    expect(normalized?.transactions[0].updatedAt).toBeTypeOf("string");
   });
 });
