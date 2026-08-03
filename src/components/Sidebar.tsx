@@ -75,24 +75,11 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* Bottom actions */}
-      <div className="px-6 py-6">
-        <button className="w-full bg-primary text-on-primary py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
-          <span className="material-symbols-outlined text-sm">add</span>
-          ערך חדש
-        </button>
-      </div>
-
-      <div className="px-4 py-4 mt-auto border-t border-slate-200">
-        <button className="w-full flex items-center px-4 py-2 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium rounded-md" type="button">
-          <span className="material-symbols-outlined ml-3 text-lg">help</span>
-          תמיכה
-        </button>
-
-        <button className="w-full flex items-center px-4 py-2 text-slate-500 hover:bg-slate-100 transition-colors text-sm font-medium rounded-md" type="button">
-          <span className="material-symbols-outlined ml-3 text-lg">logout</span>
-          התנתקות
-        </button>
+      <div className="mt-auto border-t border-slate-200 px-6 py-5">
+        <div className="flex items-center gap-3 text-xs text-slate-500">
+          <span className="material-symbols-outlined text-lg">lock</span>
+          <span>הנתונים נשמרים במכשיר זה</span>
+        </div>
       </div>
       </aside>
     </>

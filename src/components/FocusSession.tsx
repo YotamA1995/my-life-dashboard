@@ -1,4 +1,5 @@
 import type { Task } from "../store/useTasksStore";
+import { Link } from "react-router-dom";
 
 type FocusSessionProps = {
   tasks: Task[];
@@ -156,12 +157,12 @@ export default function FocusSession({ tasks }: FocusSessionProps) {
       </div>
 
       {/* Button */}
-      <button
-        type="button"
-        className="mt-6 w-full rounded-xl bg-surface-container py-3 text-sm font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white"
+      <Link
+        to="/tasks"
+        className="mt-6 w-full rounded-xl bg-surface-container py-3 text-center text-sm font-bold text-primary transition-all duration-300 hover:bg-primary hover:text-white"
       >
-        {focusTask ? "התחל סשן פוקוס" : "פתח משימה חדשה"}
-      </button>
+        {focusTask ? "פתח בלוח המשימות" : "פתח משימה חדשה"}
+      </Link>
     </div>
   );
 }

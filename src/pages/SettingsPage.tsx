@@ -1,227 +1,288 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  useSettingsStore,
+  type DashboardWidgetKey,
+  type DashboardWidgets,
+  type ThemePreference,
+} from "../store/useSettingsStore";
 
-
-const notificationSettings = [
+const themeOptions: Array<{
+  value: ThemePreference;
+  label: string;
+  description: string;
+  icon: string;
+}> = [
   {
-    title: "סיכומי דוא״ל",
-    description: "קבל סיכומים שבועיים של הפעילות המקצועית שלך.",
-    icon: "mail",
-    iconClassName: "bg-blue-50 text-blue-600",
-    enabled: true,
+    value: "light",
+    label: "בהיר",
+    description: "מראה בהיר וקבוע",
+    icon: "light_mode",
   },
   {
-    title: "התראות בזמן אמת",
-    description: "התראות שולחן עבודה ונייד למשימות דחופות.",
-    icon: "notifications_active",
-    iconClassName: "bg-amber-50 text-amber-600",
-    enabled: true,
+    value: "dark",
+    label: "כהה",
+    description: "מראה כהה וקבוע",
+    icon: "dark_mode",
   },
   {
-    title: "עדכוני שיווק",
-    description: "הישאר מעודכן לגבי מודולים חדשים וטיפים לפרודוקטיביות.",
-    icon: "campaign",
-    iconClassName: "bg-green-50 text-green-600",
-    enabled: false,
+    value: "system",
+    label: "לפי המערכת",
+    description: "מתחלף לפי הגדרת המכשיר",
+    icon: "desktop_windows",
   },
 ];
 
-const modules = [
-  { label: "מעקב פיננסי", icon: "account_balance_wallet", enabled: true },
-  { label: "יומן חכם", icon: "event_note", enabled: true },
-  { label: "אנליטיקה של משימות", icon: "monitoring", enabled: false },
-  { label: "פעילות אחרונה", icon: "history", enabled: true },
+const dashboardModules: Array<{
+  key: DashboardWidgetKey;
+  label: string;
+  description: string;
+  icon: string;
+}> = [
+  {
+    key: "productivity",
+    label: "קצב פרודוקטיביות",
+    description: "השלמת משימות בשבעת הימים האחרונים",
+    icon: "monitoring",
+  },
+  {
+    key: "focus",
+    label: "סשן ריכוז",
+    description: "המלצה למשימה הבאה וזמן מיקוד",
+    icon: "psychology",
+  },
+  {
+    key: "activity",
+    label: "פעילות משימות",
+    description: "השינויים האחרונים שבוצעו במשימות",
+    icon: "history",
+  },
+  {
+    key: "status",
+    label: "מצב היום",
+    description: "עומס, איחורים ומשימות בעדיפות גבוהה",
+    icon: "view_quilt",
+  },
 ];
 
-function Toggle({ enabled }: { enabled: boolean }) {
+function Toggle({
+  enabled,
+  label,
+  onToggle,
+}: {
+  enabled: boolean;
+  label: string;
+  onToggle: () => void;
+}) {
   return (
     <button
-      className={`relative h-6 w-11 rounded-full transition-colors ${
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      aria-label={label}
+      onClick={onToggle}
+      className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary ${
         enabled ? "bg-secondary" : "bg-slate-200"
       }`}
-      type="button"
     >
       <span
-        className={`absolute top-[2px] h-5 w-5 rounded-full bg-white shadow-sm transition-all ${
-          enabled ? "right-[22px]" : "right-[2px]"
+        className={`theme-preserve-white absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${
+          enabled ? "right-6" : "right-1"
         }`}
       />
     </button>
   );
 }
 
-function SmallToggle({ enabled }: { enabled: boolean }) {
-  return (
-    <button
-      className={`relative h-5 w-9 rounded-full transition-colors ${
-        enabled ? "bg-secondary" : "bg-slate-200"
-      }`}
-      type="button"
-    >
-      <span
-        className={`absolute top-[2px] h-4 w-4 rounded-full bg-white shadow-sm transition-all ${
-          enabled ? "right-[18px]" : "right-[2px]"
-        }`}
-      />
-    </button>
-  );
+function formatSavedAt(savedAt?: string) {
+  if (!savedAt) {
+    return "ההגדרות טרם נשמרו באופן ידני";
+  }
+
+  return `נשמר לאחרונה ${new Intl.DateTimeFormat("he-IL", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(savedAt))}`;
 }
 
 export default function SettingsPage() {
+  const { theme, dashboardWidgets, savedAt, saveSettings } = useSettingsStore();
+  const [draftTheme, setDraftTheme] = useState(theme);
+  const [draftWidgets, setDraftWidgets] = useState<DashboardWidgets>({
+    ...dashboardWidgets,
+  });
+
+  useEffect(() => {
+    return useSettingsStore.subscribe((state, previousState) => {
+      if (
+        state.theme !== previousState.theme ||
+        state.dashboardWidgets !== previousState.dashboardWidgets
+      ) {
+        setDraftTheme(state.theme);
+        setDraftWidgets({ ...state.dashboardWidgets });
+      }
+    });
+  }, []);
+
+  const hasChanges = useMemo(
+    () =>
+      draftTheme !== theme ||
+      Object.keys(draftWidgets).some(
+        (key) =>
+          draftWidgets[key as DashboardWidgetKey] !==
+          dashboardWidgets[key as DashboardWidgetKey],
+      ),
+    [dashboardWidgets, draftTheme, draftWidgets, theme],
+  );
+
+  function toggleWidget(key: DashboardWidgetKey) {
+    setDraftWidgets((current) => ({
+      ...current,
+      [key]: !current[key],
+    }));
+  }
+
+  function resetDraft() {
+    setDraftTheme(theme);
+    setDraftWidgets({ ...dashboardWidgets });
+  }
+
+  function saveDraft() {
+    saveSettings({
+      theme: draftTheme,
+      dashboardWidgets: draftWidgets,
+    });
+  }
+
   return (
-    <main className="min-h-screen bg-surface px-4 pt-20 pb-8 text-on-surface sm:px-6 sm:pb-10 lg:px-8 lg:pt-24 lg:pb-12">
-      <div className="w-full max-w-[1440px] mx-auto">
+    <main className="min-h-screen bg-surface px-4 pb-8 pt-20 text-on-surface sm:px-6 sm:pb-10 lg:px-8 lg:pb-12 lg:pt-24">
+      <div className="mx-auto w-full max-w-[1200px]">
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-primary sm:text-h1">הגדרות והתאמה אישית</h2>
+          <h2 className="text-2xl font-semibold text-primary sm:text-h1">
+            הגדרות והתאמה אישית
+          </h2>
           <p className="mt-2 text-sm text-on-surface-variant">
-            התאמה אישית של חוויית העבודה, התראות ומודולים פעילים.
+            בחר את מראה המערכת ואת הרכיבים שיופיעו בלוח הבקרה.
           </p>
         </div>
 
-        <div className="grid grid-cols-12 gap-4 lg:gap-8">
-          {/* Main settings */}
-          <section className="col-span-12 lg:col-span-8 space-y-8">
-            {/* Appearance */}
-            <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]">
-              <div className="border-b border-slate-100 bg-surface-container-low p-card-padding">
-                <h3 className="text-h3 text-primary">מראה</h3>
-                <p className="text-sm text-on-surface-variant">
-                  התאם אישית את מראה הפלטפורמה כך שיתאים לסביבת העבודה שלך.
-                </p>
-              </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+            <div className="border-b border-slate-100 bg-surface-container-low p-5 sm:p-6">
+              <h3 className="text-h3 text-primary">ערכת נושא</h3>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                הבחירה תחול על כל מסכי המערכת לאחר השמירה.
+              </p>
+            </div>
 
-              <div className="space-y-8 p-card-padding">
-                <div>
-                  <label className="mb-4 block text-label-caps text-on-surface-variant">
-                    מצב ערכת נושא
-                  </label>
+            <div className="grid gap-4 p-5 sm:p-6">
+              {themeOptions.map((option) => {
+                const isSelected = draftTheme === option.value;
 
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <button className="flex flex-col items-center gap-3 rounded-lg border-2 border-secondary bg-secondary/5 p-4 transition-all hover:-translate-y-1" type="button">
-                      <div className="relative aspect-video w-full overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
-                        <div className="absolute inset-y-0 right-0 w-1/4 border-l border-slate-200 bg-slate-100" />
-                        <div className="absolute left-2 top-2 h-4 w-4 rounded-full bg-secondary" />
-                      </div>
-                      <span className="text-sm font-semibold text-primary">מצב בהיר</span>
-                    </button>
-
-                    <button className="flex flex-col items-center gap-3 rounded-lg border border-slate-200 p-4 transition-all hover:-translate-y-1 hover:border-secondary/40" type="button">
-                      <div className="relative aspect-video w-full overflow-hidden rounded-md border border-slate-800 bg-slate-900 shadow-sm">
-                        <div className="absolute inset-y-0 right-0 w-1/4 border-l border-slate-800 bg-slate-950" />
-                        <div className="absolute left-2 top-2 h-4 w-4 rounded-full bg-slate-700" />
-                      </div>
-                      <span className="text-sm font-medium text-on-surface-variant">מצב כהה</span>
-                    </button>
-
-                    <button className="flex flex-col items-center gap-3 rounded-lg border border-slate-200 p-4 transition-all hover:-translate-y-1 hover:border-secondary/40" type="button">
-                      <div className="relative aspect-video w-full overflow-hidden rounded-md border border-slate-200 bg-slate-100 shadow-sm">
-                        <div className="absolute inset-y-0 right-0 w-1/2 border-l border-slate-800 bg-slate-900" />
-                      </div>
-                      <span className="text-sm font-medium text-on-surface-variant">מערכת</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="mb-4 block text-label-caps text-on-surface-variant">
-                    צבע דגש
-                  </label>
-
-                  <div className="flex flex-wrap items-center gap-4">
-                    <button className="h-10 w-10 rounded-full bg-secondary ring-2 ring-secondary ring-offset-2 transition-transform hover:scale-110" type="button" />
-                    <button className="h-10 w-10 rounded-full bg-[#7C3AED] transition-transform hover:scale-110" type="button" />
-                    <button className="h-10 w-10 rounded-full bg-[#10B981] transition-transform hover:scale-110" type="button" />
-                    <button className="h-10 w-10 rounded-full bg-[#F59E0B] transition-transform hover:scale-110" type="button" />
-                    <button className="h-10 w-10 rounded-full bg-[#EF4444] transition-transform hover:scale-110" type="button" />
-                    <button className="flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-400 transition-colors hover:text-primary" type="button">
-                      <span className="material-symbols-outlined text-sm">palette</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </article>
-
-            {/* Notifications */}
-            <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]">
-              <div className="border-b border-slate-100 bg-surface-container-low p-card-padding">
-                <h3 className="text-h3 text-primary">התראות</h3>
-                <p className="text-sm text-on-surface-variant">
-                  נהל כיצד ומתי תקבל עדכונים ותזכורות.
-                </p>
-              </div>
-
-              <div className="divide-y divide-slate-100">
-                {notificationSettings.map((item) => (
-                  <div key={item.title} className="flex items-start justify-between gap-4 p-5 sm:p-card-padding">
-                    <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-                      <div className={`rounded-lg p-2 ${item.iconClassName}`}>
-                        <span className="material-symbols-outlined">{item.icon}</span>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-primary">{item.title}</p>
-                        <p className="text-sm text-on-surface-variant">{item.description}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex-shrink-0">
-                      <Toggle enabled={item.enabled} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </article>
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => setDraftTheme(option.value)}
+                    className={`flex items-center gap-4 rounded-xl border p-4 text-right transition-colors ${
+                      isSelected
+                        ? "border-secondary bg-secondary/5 ring-1 ring-secondary"
+                        : "border-outline-variant hover:bg-surface-container-low"
+                    }`}
+                  >
+                    <span
+                      className={`material-symbols-outlined flex h-11 w-11 items-center justify-center rounded-xl ${
+                        isSelected
+                          ? "bg-secondary text-white"
+                          : "bg-surface-container text-on-surface-variant"
+                      }`}
+                    >
+                      {option.icon}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-primary">
+                        {option.label}
+                      </span>
+                      <span className="mt-1 block text-sm text-on-surface-variant">
+                        {option.description}
+                      </span>
+                    </span>
+                    {isSelected ? (
+                      <span className="material-symbols-outlined text-secondary">
+                        check_circle
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
           </section>
 
-          {/* Sidebar */}
-          <aside className="col-span-12 space-y-8 lg:col-span-4">
-            <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]">
-              <div className="border-b border-slate-100 bg-surface-container-low p-card-padding">
-                <h3 className="text-h3 text-primary">מודולים בלוח הבקרה</h3>
-                <p className="text-sm text-on-surface-variant">
-                  שנה את הניראות של רכיבי המערכת השונים.
-                </p>
-              </div>
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+            <div className="border-b border-slate-100 bg-surface-container-low p-5 sm:p-6">
+              <h3 className="text-h3 text-primary">רכיבי לוח הבקרה</h3>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                כרטיסי הסיכום העליונים נשארים מוצגים תמיד.
+              </p>
+            </div>
 
-              <div className="space-y-4 p-card-padding">
-                {modules.map((item) => (
-                  <div key={item.label} className="flex items-center justify-between rounded-lg bg-surface p-3">
-                    <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-slate-500">{item.icon}</span>
-                      <span className="text-primary">{item.label}</span>
+            <div className="divide-y divide-slate-100">
+              {dashboardModules.map((module) => (
+                <div
+                  key={module.key}
+                  className="flex items-start justify-between gap-4 p-5 sm:p-6"
+                >
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="material-symbols-outlined flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-surface-container text-on-surface-variant">
+                      {module.icon}
+                    </span>
+                    <div>
+                      <p className="font-semibold text-primary">{module.label}</p>
+                      <p className="mt-1 text-sm text-on-surface-variant">
+                        {module.description}
+                      </p>
                     </div>
-                    <SmallToggle enabled={item.enabled} />
                   </div>
-                ))}
-              </div>
-            </article>
-
-            <article className="relative min-h-72 cursor-pointer overflow-hidden rounded-xl bg-primary shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.12)] sm:aspect-square">
-              <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-primary-container" />
-              <div className="absolute inset-0 flex flex-col justify-end p-8">
-                <span className="mb-2 text-label-caps text-tertiary-fixed">סטטוס שדרוג</span>
-                <h3 className="mb-2 text-h3 text-white">פתח מודולים של Pro</h3>
-                <p className="text-sm text-slate-300">
-                  קבל גישה לווידג׳טים מותאמים אישית, סינון מתקדם והיסטוריית ענן ללא הגבלה.
-                </p>
-                <button className="mt-4 w-fit rounded-lg bg-white px-6 py-2 font-semibold text-primary" type="button">
-                  למד עוד
-                </button>
-              </div>
-            </article>
-          </aside>
+                  <Toggle
+                    enabled={draftWidgets[module.key]}
+                    label={`${draftWidgets[module.key] ? "הסתרת" : "הצגת"} ${module.label}`}
+                    onToggle={() => toggleWidget(module.key)}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
 
-        {/* Footer */}
-        <section className="mt-8 flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] sm:p-6 lg:mt-12 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-2 text-sm text-on-surface-variant">
-            <span className="material-symbols-outlined text-sm">info</span>
-            <span>סנכרון הגדרות אחרון: היום ב-09:42 בבוקר</span>
+        <section className="mt-6 flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined mt-0.5 text-secondary">
+              save
+            </span>
+            <div>
+              <p className="font-semibold text-primary">שמירה מקומית</p>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                {formatSavedAt(savedAt)}. ההגדרות נשמרות במכשיר ובדפדפן הזה.
+              </p>
+            </div>
           </div>
 
-          <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:items-center lg:w-auto lg:gap-4">
-            <button className="w-full rounded-lg px-6 py-2 font-semibold text-on-surface-variant transition-colors hover:bg-slate-100 sm:w-auto" type="button">
-              בטל שינויים
+          <div className="flex flex-col-reverse gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={resetDraft}
+              disabled={!hasChanges}
+              className="h-11 rounded-xl px-5 font-semibold text-on-surface-variant transition-colors hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              ביטול שינויים
             </button>
-            <button className="w-full rounded-lg bg-secondary px-8 py-2 font-semibold text-white shadow-md shadow-secondary/20 transition-all hover:opacity-90 sm:w-auto" type="button">
-              שמור שינויים
+            <button
+              type="button"
+              onClick={saveDraft}
+              disabled={!hasChanges}
+              className="h-11 rounded-xl bg-secondary px-6 font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              שמירת הגדרות
             </button>
           </div>
         </section>

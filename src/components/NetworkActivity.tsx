@@ -1,4 +1,5 @@
 import type { Task } from "../store/useTasksStore";
+import { Link } from "react-router-dom";
 
 type NetworkActivityProps = {
   tasks: Task[];
@@ -141,12 +142,12 @@ export default function NetworkActivity({ tasks }: NetworkActivityProps) {
 
       {/* Footer */}
       <div className="bg-slate-50/50 p-4 text-center">
-        <button
-          type="button"
+        <Link
+          to="/tasks"
           className="text-xs font-bold text-blue-600 transition-all hover:text-primary hover:underline"
         >
-          הצג הכל
-        </button>
+          מעבר ללוח המשימות
+        </Link>
       </div>
     </div>
   );

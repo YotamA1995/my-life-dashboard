@@ -6,6 +6,7 @@ import WellnessCard from "../components/WellnessCard";
 import { useTasksStore } from "../store/useTasksStore";
 import type { Task } from "../store/useTasksStore";
 import { isCompletedToday, isOverdue } from "../utils/dateUtils";
+import { useSettingsStore } from "../store/useSettingsStore";
 
 function isTaskOverdue(task: Task) {
   return task.status !== "done" && isOverdue(task.dueDate);
@@ -17,6 +18,9 @@ function wasTaskCompletedToday(task: Task) {
 
 export default function DashboardPage() {
   const { tasks } = useTasksStore();
+  const dashboardWidgets = useSettingsStore(
+    (state) => state.dashboardWidgets,
+  );
 
   const activeTasks = tasks.filter((task) => task.status !== "done").length;
   const overdueTasks = tasks.filter(isTaskOverdue).length;
@@ -61,12 +65,30 @@ export default function DashboardPage() {
         </div>
 
         {/* Bento Grid */}
-        <div className="mt-6 grid grid-cols-12 items-stretch gap-4 lg:mt-8 lg:gap-gutter">
-          <ProductivityChart tasks={tasks} />
-          <FocusSession tasks={tasks} />
-          <NetworkActivity tasks={tasks} />
-          <WellnessCard tasks={tasks} />
-        </div>
+        {Object.values(dashboardWidgets).some(Boolean) ? (
+          <div className="mt-6 grid grid-cols-12 items-stretch gap-4 lg:mt-8 lg:gap-gutter">
+            {dashboardWidgets.productivity ? (
+              <ProductivityChart tasks={tasks} />
+            ) : null}
+            {dashboardWidgets.focus ? <FocusSession tasks={tasks} /> : null}
+            {dashboardWidgets.activity ? (
+              <NetworkActivity tasks={tasks} />
+            ) : null}
+            {dashboardWidgets.status ? <WellnessCard tasks={tasks} /> : null}
+          </div>
+        ) : (
+          <div className="mt-6 rounded-xl border border-outline-variant bg-surface-container-low p-8 text-center lg:mt-8">
+            <span className="material-symbols-outlined text-4xl text-outline">
+              dashboard_customize
+            </span>
+            <p className="mt-3 font-semibold text-primary">
+              כל רכיבי לוח הבקרה מוסתרים
+            </p>
+            <p className="mt-1 text-sm text-on-surface-variant">
+              אפשר להחזיר רכיבים דרך מסך ההגדרות.
+            </p>
+          </div>
+        )}
       </div>
     </main>
   );
