@@ -250,6 +250,22 @@ function isStoredTask(value: unknown): value is StoredTask {
   );
 }
 
+export function normalizeTasksData(tasks: unknown): Task[] | undefined {
+  if (!Array.isArray(tasks) || !tasks.every(isStoredTask)) {
+    return undefined;
+  }
+
+  return Array.from(
+    new Map(
+      tasks.map((task) => {
+        const normalizedTask = normalizeTask(task);
+
+        return [normalizedTask.id, normalizedTask];
+      }),
+    ).values(),
+  );
+}
+
 export const useTasksStore = create<TasksStore>()(
   persist(
     (set, get) => ({
@@ -376,19 +392,11 @@ export const useTasksStore = create<TasksStore>()(
       },
 
       replaceTasks(tasks) {
-        if (!Array.isArray(tasks) || !tasks.every(isStoredTask)) {
+        const normalizedTasks = normalizeTasksData(tasks);
+
+        if (!normalizedTasks) {
           return;
         }
-
-        const normalizedTasks = Array.from(
-          new Map(
-            tasks.map((task) => {
-              const normalizedTask = normalizeTask(task);
-
-              return [normalizedTask.id, normalizedTask];
-            }),
-          ).values(),
-        );
 
         set({ tasks: normalizedTasks });
 
@@ -412,9 +420,8 @@ export const useTasksStore = create<TasksStore>()(
         const state = persistedState as { tasks?: unknown };
 
         return {
-          tasks: Array.isArray(state.tasks) && state.tasks.every(isStoredTask)
-            ? state.tasks.map(normalizeTask)
-            : initialTasks.map(normalizeTask),
+          tasks:
+            normalizeTasksData(state.tasks) ?? initialTasks.map(normalizeTask),
         };
       },
     },

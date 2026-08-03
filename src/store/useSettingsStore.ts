@@ -20,6 +20,7 @@ export type AppSettings = {
 type SettingsStore = AppSettings & {
   saveSettings: (settings: Omit<AppSettings, "savedAt">) => void;
   setTheme: (theme: ThemePreference) => void;
+  replaceSettings: (settings: unknown) => boolean;
 };
 
 export const defaultDashboardWidgets: DashboardWidgets = {
@@ -93,6 +94,55 @@ export function normalizeSettings(value: unknown): AppSettings {
   };
 }
 
+export function normalizeSettingsBackup(value: unknown): AppSettings | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const settings = value as {
+    theme?: unknown;
+    dashboardWidgets?: unknown;
+    savedAt?: unknown;
+  };
+
+  if (
+    (settings.theme !== "light" &&
+      settings.theme !== "dark" &&
+      settings.theme !== "system") ||
+    !settings.dashboardWidgets ||
+    typeof settings.dashboardWidgets !== "object"
+  ) {
+    return undefined;
+  }
+
+  const widgets = settings.dashboardWidgets as Record<string, unknown>;
+
+  if (
+    typeof widgets.finance !== "boolean" ||
+    typeof widgets.productivity !== "boolean" ||
+    typeof widgets.focus !== "boolean" ||
+    typeof widgets.activity !== "boolean" ||
+    typeof widgets.status !== "boolean" ||
+    (settings.savedAt !== undefined &&
+      (typeof settings.savedAt !== "string" ||
+        Number.isNaN(new Date(settings.savedAt).getTime())))
+  ) {
+    return undefined;
+  }
+
+  return {
+    theme: settings.theme,
+    dashboardWidgets: {
+      finance: widgets.finance,
+      productivity: widgets.productivity,
+      focus: widgets.focus,
+      activity: widgets.activity,
+      status: widgets.status,
+    },
+    savedAt: settings.savedAt as string | undefined,
+  };
+}
+
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
@@ -112,6 +162,17 @@ export const useSettingsStore = create<SettingsStore>()(
           theme: normalizeTheme(theme),
           savedAt: new Date().toISOString(),
         });
+      },
+
+      replaceSettings(settings) {
+        const normalizedSettings = normalizeSettingsBackup(settings);
+
+        if (!normalizedSettings) {
+          return false;
+        }
+
+        set(normalizedSettings);
+        return true;
       },
     }),
     {

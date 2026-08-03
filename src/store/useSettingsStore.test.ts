@@ -89,4 +89,35 @@ describe("useSettingsStore", () => {
       savedAt: undefined,
     });
   });
+
+  it("replaces settings only when a complete backup is valid", () => {
+    const store = storeModule.useSettingsStore.getState();
+    const invalidResult = store.replaceSettings({ theme: "dark" });
+
+    expect(invalidResult).toBe(false);
+    expect(storeModule.useSettingsStore.getState().theme).toBe("system");
+
+    const validResult = storeModule.useSettingsStore.getState().replaceSettings({
+      theme: "dark",
+      dashboardWidgets: {
+        finance: false,
+        productivity: true,
+        focus: true,
+        activity: false,
+        status: true,
+      },
+    });
+
+    expect(validResult).toBe(true);
+    expect(storeModule.useSettingsStore.getState()).toMatchObject({
+      theme: "dark",
+      dashboardWidgets: {
+        finance: false,
+        productivity: true,
+        focus: true,
+        activity: false,
+        status: true,
+      },
+    });
+  });
 });

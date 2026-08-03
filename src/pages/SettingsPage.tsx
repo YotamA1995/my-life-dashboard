@@ -5,6 +5,7 @@ import {
   type DashboardWidgets,
   type ThemePreference,
 } from "../store/useSettingsStore";
+import AppDataManager from "../components/settings/AppDataManager";
 
 const themeOptions: Array<{
   value: ThemePreference;
@@ -292,6 +293,8 @@ export default function SettingsPage() {
             </button>
           </div>
         </section>
+
+        <AppDataManager />
       </div>
     </main>
   );
