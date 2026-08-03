@@ -9,6 +9,10 @@ import {
   type TransactionType,
 } from "../store/useFinanceStore";
 import { APP_TIME_ZONE, getTodayDate } from "../utils/dateUtils";
+import {
+  getBudgetProgress,
+  getMonthlyFinanceSummary,
+} from "../utils/financeAnalytics";
 
 const categorySuggestions = [
   "דיור",
@@ -304,23 +308,21 @@ export default function FinancePage() {
     return () => window.clearTimeout(timeout);
   }, [notice]);
 
-  const monthTransactions = useMemo(
-    () => transactions.filter((transaction) => transaction.date.startsWith(selectedMonth)),
+  const financeSummary = useMemo(
+    () => getMonthlyFinanceSummary(transactions, selectedMonth),
     [selectedMonth, transactions],
   );
-
-  const completedTransactions = monthTransactions.filter(
-    (transaction) => transaction.status === "completed",
+  const budgetProgress = useMemo(
+    () => getBudgetProgress(transactions, budgets, selectedMonth),
+    [budgets, selectedMonth, transactions],
   );
-  const income = completedTransactions
-    .filter((transaction) => transaction.type === "income")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
-  const expenses = completedTransactions
-    .filter((transaction) => transaction.type === "expense")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
-  const pending = monthTransactions
-    .filter((transaction) => transaction.status === "pending")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
+  const {
+    monthTransactions,
+    income,
+    expenses,
+    balance,
+    pendingAmount,
+  } = financeSummary;
 
   const visibleTransactions = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("he-IL");
@@ -445,8 +447,8 @@ export default function FinancePage() {
         {[
           { label: "הכנסות", value: income, icon: "trending_up", tone: "text-on-tertiary-container" },
           { label: "הוצאות", value: expenses, icon: "trending_down", tone: "text-error" },
-          { label: "מאזן חודשי", value: income - expenses, icon: "account_balance_wallet", tone: income - expenses >= 0 ? "text-on-tertiary-container" : "text-error" },
-          { label: "בהמתנה", value: pending, icon: "schedule", tone: "text-secondary" },
+          { label: "מאזן חודשי", value: balance, icon: "account_balance_wallet", tone: balance >= 0 ? "text-on-tertiary-container" : "text-error" },
+          { label: "בהמתנה", value: pendingAmount, icon: "schedule", tone: "text-secondary" },
         ].map((item) => (
           <article key={item.label} className="rounded-xl border border-slate-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
             <div className="flex items-start justify-between gap-3">
@@ -477,20 +479,14 @@ export default function FinancePage() {
           </div>
         ) : (
           <div className="grid gap-5 lg:grid-cols-2">
-            {budgets.map((budget) => {
-              const spent = completedTransactions
-                .filter((transaction) => transaction.type === "expense" && transaction.category === budget.category)
-                .reduce((sum, transaction) => sum + transaction.amount, 0);
-              const percentage = Math.min(100, (spent / budget.amount) * 100);
-              const exceeded = spent > budget.amount;
-
+            {budgetProgress.map((budget) => {
               return (
                 <article key={budget.category} className="rounded-xl border border-outline-variant/50 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-semibold text-primary">{budget.category}</p>
-                      <p className={`mt-1 text-sm ${exceeded ? "text-error" : "text-on-surface-variant"}`}>
-                        {formatCurrency(spent)} מתוך {formatCurrency(budget.amount)}
+                      <p className={`mt-1 text-sm ${budget.exceeded ? "text-error" : "text-on-surface-variant"}`}>
+                        {formatCurrency(budget.spent)} מתוך {formatCurrency(budget.amount)}
                       </p>
                     </div>
                     <div className="flex gap-1">
@@ -503,7 +499,7 @@ export default function FinancePage() {
                     </div>
                   </div>
                   <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-surface-container-low">
-                    <div className={`h-full rounded-full ${exceeded ? "bg-error" : "bg-on-tertiary-container"}`} style={{ width: `${percentage}%` }} />
+                    <div className={`h-full rounded-full ${budget.exceeded ? "bg-error" : "bg-on-tertiary-container"}`} style={{ width: `${budget.percentage}%` }} />
                   </div>
                 </article>
               );

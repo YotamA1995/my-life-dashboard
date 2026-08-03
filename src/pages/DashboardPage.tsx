@@ -7,6 +7,8 @@ import { useTasksStore } from "../store/useTasksStore";
 import type { Task } from "../store/useTasksStore";
 import { isCompletedToday, isOverdue } from "../utils/dateUtils";
 import { useSettingsStore } from "../store/useSettingsStore";
+import { useFinanceStore } from "../store/useFinanceStore";
+import FinanceOverviewCard from "../components/FinanceOverviewCard";
 
 function isTaskOverdue(task: Task) {
   return task.status !== "done" && isOverdue(task.dueDate);
@@ -21,6 +23,7 @@ export default function DashboardPage() {
   const dashboardWidgets = useSettingsStore(
     (state) => state.dashboardWidgets,
   );
+  const { transactions, budgets } = useFinanceStore();
 
   const activeTasks = tasks.filter((task) => task.status !== "done").length;
   const overdueTasks = tasks.filter(isTaskOverdue).length;
@@ -33,7 +36,7 @@ export default function DashboardPage() {
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-primary sm:text-h1">בוקר טוב, יותם 👋</h2>
           <p className="text-slate-500">
-            הנה תמונת המצב שלך להיום מתוך מודול המשימות
+            הנה תמונת המצב המשולבת שלך להיום
           </p>
         </div>
 
@@ -67,6 +70,12 @@ export default function DashboardPage() {
         {/* Bento Grid */}
         {Object.values(dashboardWidgets).some(Boolean) ? (
           <div className="mt-6 grid grid-cols-12 items-stretch gap-4 lg:mt-8 lg:gap-gutter">
+            {dashboardWidgets.finance ? (
+              <FinanceOverviewCard
+                transactions={transactions}
+                budgets={budgets}
+              />
+            ) : null}
             {dashboardWidgets.productivity ? (
               <ProductivityChart tasks={tasks} />
             ) : null}

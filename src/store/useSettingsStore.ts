@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 export type ThemePreference = "light" | "dark" | "system";
 export type DashboardWidgetKey =
+  | "finance"
   | "productivity"
   | "focus"
   | "activity"
@@ -22,6 +23,7 @@ type SettingsStore = AppSettings & {
 };
 
 export const defaultDashboardWidgets: DashboardWidgets = {
+  finance: true,
   productivity: true,
   focus: true,
   activity: true,
@@ -66,6 +68,10 @@ export function normalizeSettings(value: unknown): AppSettings {
   return {
     theme: normalizeTheme(settings.theme),
     dashboardWidgets: {
+      finance:
+        typeof widgets.finance === "boolean"
+          ? widgets.finance
+          : defaultDashboardWidgets.finance,
       productivity:
         typeof widgets.productivity === "boolean"
           ? widgets.productivity

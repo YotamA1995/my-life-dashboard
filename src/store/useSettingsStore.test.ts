@@ -49,6 +49,7 @@ describe("useSettingsStore", () => {
     storeModule.useSettingsStore.getState().saveSettings({
       theme: "dark",
       dashboardWidgets: {
+        finance: true,
         productivity: true,
         focus: false,
         activity: true,
@@ -79,6 +80,7 @@ describe("useSettingsStore", () => {
     ).toEqual({
       theme: "system",
       dashboardWidgets: {
+        finance: true,
         productivity: true,
         focus: false,
         activity: true,

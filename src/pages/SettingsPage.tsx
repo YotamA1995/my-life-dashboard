@@ -39,6 +39,12 @@ const dashboardModules: Array<{
   icon: string;
 }> = [
   {
+    key: "finance",
+    label: "תמונה פיננסית",
+    description: "הכנסות, הוצאות, מאזן והתראות תקציב",
+    icon: "account_balance_wallet",
+  },
+  {
     key: "productivity",
     label: "קצב פרודוקטיביות",
     description: "השלמת משימות בשבעת הימים האחרונים",
