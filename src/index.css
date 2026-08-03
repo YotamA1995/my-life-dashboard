@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Material Symbols Outlined";
+  src: url("/fonts/material-symbols-outlined.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+}
+
 @layer base {
   html,
   body,
@@ -12,9 +20,25 @@
   body {
     overflow-x: hidden;
     background: #f8f9fa;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     transition:
       background-color 180ms ease,
       color 180ms ease;
+  }
+
+  .material-symbols-outlined {
+    display: inline-block;
+    direction: ltr;
+    font-family: "Material Symbols Outlined";
+    font-size: 24px;
+    font-style: normal;
+    font-weight: normal;
+    font-feature-settings: "liga";
+    letter-spacing: normal;
+    line-height: 1;
+    text-transform: none;
+    white-space: nowrap;
+    word-wrap: normal;
   }
 
   button,

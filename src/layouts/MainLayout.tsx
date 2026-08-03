@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import PwaStatus from "../components/pwa/PwaStatus";
 import { useSettingsStore } from "../store/useSettingsStore";
 
 export default function MainLayout() {
@@ -59,6 +60,7 @@ export default function MainLayout() {
       <div className="lg:mr-64">
         <Outlet />
       </div>
+      <PwaStatus />
     </div>
   );
 }
